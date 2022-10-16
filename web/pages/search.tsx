@@ -1,31 +1,32 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import * as React from 'react';
+import type { NextPage } from 'next';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import { makeStyles } from '@mui/styles';
+
+const useStyles = makeStyles((theme) => ({
+    main: {
+      marginTop: theme.spacing(4),
+      marginBottom: theme.spacing(4),
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  }));
 
 const Search: NextPage = () => {
+    const classes = useStyles();
+
     return (
-        <div className={styles.container}>
-            <Head>
-                <title>Search</title>
-            </Head>
-
-            <main className={styles.main}>
-                <h1 className={styles.title}>
+        <Container maxWidth="lg">
+            <div className={classes.main}>
+                <Typography variant="h4" component="h1" gutterBottom>
                     Search
-                </h1>
-            </main>
-
-            <footer className={styles.footer}>
-                <a
-                href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                target="_blank"
-                rel="noopener noreferrer"
-                >
-                Powered by ジーマーミ豆腐
-                </a>
-            </footer>
-        </div>
-    )
+                </Typography>
+            </div>
+        </Container>
+    );
 }
 
-export default Search
+export default Search;
