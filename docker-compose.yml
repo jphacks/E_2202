@@ -11,3 +11,14 @@ services:
     init: true
     working_dir: /usr/src/app/web/
     command: npm start
+  
+  server:
+    build:
+      context: ./server
+      target: dev
+    volumes:
+      - ./server:/usr/src/app/web/
+    working_dir: /usr/src/app/web/
+    ports:
+      - "8000:8000"
+    
