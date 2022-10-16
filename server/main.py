@@ -12,11 +12,6 @@ error_name_pattern = re.compile(".*[e|E]rror.+")
 not_found_pattern = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
 
-@app.get("/")
-async def root(): # type: ignore
-    return {"message": "Hello World"}
-
-
 class ErrorContents(BaseModel):
     error_text: str
 
