@@ -13,7 +13,7 @@ not_found_patter = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
 
 @app.get("/")
-async def root():
+async def root(): # type: ignore
     return {"message": "Hello World"}
 
 
@@ -21,8 +21,12 @@ class ErrorContents(BaseModel):
     error_text: str
 
 
-@app.post("/error_parse")
-async def parse_error(error_contents: ErrorContents):
+class ImportantErrorLines(BaseModel):
+    result: list[str]
+
+
+@app.post("/error_parse", response_model=ImportantErrorLines)
+async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     lines = error_contents.error_text.splitlines()
     result = []
     for line in lines:
@@ -31,4 +35,4 @@ async def parse_error(error_contents: ErrorContents):
             continue
         if not_found_patter.match(line):
             result.append(line)
-    return {"result": result}
+    return ImportantErrorLines(result=result)
