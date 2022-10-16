@@ -20,5 +20,5 @@ services:
       - ./server:/usr/src/app/web/
     working_dir: /usr/src/app/web/
     ports:
-      - "8000:8000"
+      - 8000:8000
     
