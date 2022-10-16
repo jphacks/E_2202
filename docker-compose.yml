@@ -10,4 +10,4 @@ services:
     tty: true
     init: true
     working_dir: /usr/src/app/web/
-    command: npm start
+    command: npm run dev
