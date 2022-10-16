@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    image: node:16.18.0
+    ports:
+      - 3000:3000
+    volumes:
+      - ./web/:/usr/src/app/web/
+    tty: true
+    init: true
+    working_dir: /usr/src/app/web/
+    command: npm start
