@@ -8,6 +8,8 @@ from pydantic import (
 
 
 app = FastAPI()
+error_name_pattern = re.compile(".*[e|E]rror.+")
+not_found_patter = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
 
 @app.get("/")
@@ -21,4 +23,12 @@ class ErrorContents(BaseModel):
 
 @app.post("/error_parse")
 async def parse_error(error_contents: ErrorContents):
-    return {"result": error_contents.error_text.splitlines()[-1]}
+    lines = error_contents.error_text.splitlines()
+    result = []
+    for line in lines:
+        if error_name_pattern.match(line):
+            result.append(line)
+            continue
+        if not_found_patter.match(line):
+            result.append(line)
+    return {"result": result}
