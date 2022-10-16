@@ -21,4 +21,4 @@ class ErrorContents(BaseModel):
 
 @app.post("/error_parse")
 async def parse_error(error_contents: ErrorContents):
-    return {"result": error_contents.error_text}
+    return {"result": error_contents.error_text.splitlines()[-1]}
