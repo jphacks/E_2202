@@ -61,7 +61,13 @@ export default function Search() {
         </Typography>
         {
           isQueryBuildFinished&&
-          <TextField fullWidth inputProps={{ readOnly: true }} value={ [...queryErrorContents, 'in', language, 'on', os].join(' ') }>
+          <TextField
+            fullWidth
+            label='Sample Search Query'
+            inputProps={{ readOnly: true }}
+            value={ [...queryErrorContents, 'in', language, 'on', os].join(' ') }
+            onClick={() => navigator.clipboard.writeText([...queryErrorContents, 'in', language, 'on', os].join(' '))}
+          >
           </TextField>
         }
         <FormControl fullWidth sx={{ m: 1 }}>
