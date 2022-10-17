@@ -13,6 +13,8 @@ export default function Search() {
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [error, setError] = React.useState('');
+  const [queryErrorContents, setQueryErrorContents] = React.useState([]);
+  const [isQueryBuildFinished, setQueryBuildFinished] = React.useState(false)
 
   const handleChangeOS = (event: SelectChangeEvent) => {
     setOS(event.target.value as string);
@@ -28,6 +30,19 @@ export default function Search() {
 
   const handleClick = () => {
     console.log(`${os}, ${language}, ${error}`);
+    setQueryBuildFinished(true);
+    fetch('http://localhost:8000/error_parse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({'error_text': error}),
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log(data);
+      setQueryErrorContents(data.result as []);
+    });
   }
 
   return (
@@ -44,6 +59,11 @@ export default function Search() {
         <Typography variant="h1" component="h1" gutterBottom>
           Search
         </Typography>
+        {
+          isQueryBuildFinished&&
+          <TextField fullWidth inputProps={{ readOnly: true }} value={ [...queryErrorContents, 'in', language, 'on', os].join(' ') }>
+          </TextField>
+        }
         <FormControl fullWidth sx={{ m: 1 }}>
           <InputLabel id="demo-simple-select-label">OS</InputLabel>
           <Select
