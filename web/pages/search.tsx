@@ -15,6 +15,7 @@ export default function Search() {
   const [error, setError] = React.useState('');
   const [queryErrorContents, setQueryErrorContents] = React.useState([]);
   const [isQueryBuildFinished, setQueryBuildFinished] = React.useState(false)
+  const BACKEND_ENDPOINT= process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
 
   const handleChangeOS = (event: SelectChangeEvent) => {
     setOS(event.target.value as string);
@@ -31,7 +32,7 @@ export default function Search() {
   const handleClick = () => {
     console.log(`${os}, ${language}, ${error}`);
     setQueryBuildFinished(true);
-    fetch('http://localhost:8000/error_parse', {
+    fetch(`${BACKEND_ENDPOINT}/error_parse`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

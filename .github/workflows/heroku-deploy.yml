@@ -3,7 +3,7 @@ name: Heroku backend deploy
 on:
   push:
     branches:
-      - master
+      -  feature/#28_fix_deploy_setting
 
 jobs:
   build:
@@ -13,12 +13,12 @@ jobs:
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}} #herokuのAPIのkey
-          heroku_app_name: "yukusi-backend" #herokuアプリの名前
+          heroku_app_name: "yukusi-backend-dev" #herokuアプリの名前
           heroku_email: "soto@cr.ie.u-ryukyu.ac.jp" #アカウントのメールアドレス
           appdir: "server" #サブディレクトリ名
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}} #herokuのAPIのkey
-          heroku_app_name: "yukusi" #herokuアプリの名前
+          heroku_app_name: "yukusi-dev" #herokuアプリの名前
           heroku_email: "soto@cr.ie.u-ryukyu.ac.jp" #アカウントのメールアドレス
           appdir: "web" #サブディレクトリ名
