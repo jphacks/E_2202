@@ -8,8 +8,12 @@ from pydantic import (
 
 
 app = FastAPI()
-error_name_pattern = re.compile(".*[e|E]rror.+")
-not_found_pattern = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
+error_name_pattern = re.compile(r"(.+)?Error.+")
+not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
+url_pattern = re.compile(
+    r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
+)
+unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\' ]+[\"\']?")
 
 
 class ErrorContents(BaseModel):
@@ -27,7 +31,8 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     for line in lines:
         if error_name_pattern.match(line):
             result.append(line)
-            continue
-        if not_found_pattern.match(line):
+        elif not_found_pattern.match(line):
             result.append(line)
+    result = url_pattern.sub("__URL__", "\n".join(result)).split("\n")
+    result = unix_path_pattern.sub("__FILE__", "\n".join(result)).split("\n")
     return ImportantErrorLines(result=result)
