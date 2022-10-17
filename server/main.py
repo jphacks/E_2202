@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-error_name_pattern = re.compile(".*[e|E]rror.+")
+error_name_pattern = re.compile("(.+)?Error.+")
 not_found_pattern = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
 
