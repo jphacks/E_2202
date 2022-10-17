@@ -3,7 +3,7 @@ name: Heroku backend deploy
 on:
   push:
     branches:
-      - feature/#12_deploy_heroku
+      - master
 
 jobs:
   build:
