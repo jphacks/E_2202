@@ -5,10 +5,19 @@ from fastapi import (
 from pydantic import (
     BaseModel,
 )
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
-error_name_pattern = re.compile(".*[e|E]rror.+")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+error_name_pattern = re.compile("(.+)?Error.+")
 not_found_pattern = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
 
