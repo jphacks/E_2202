@@ -1,10 +1,5 @@
 name: Heroku dev frontend deploy
 
-on:
-  push:
-    branches:
-      - '*'
-
 jobs:
   build:
     runs-on: ubuntu-latest
