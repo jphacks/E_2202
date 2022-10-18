@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "prettier:check": "prettier --list-different --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'",
+    "prettier:write": "prettier --write  --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'",
+    "format": "npm run lint:fix; npm run prettier:write"
   },
   "dependencies": {
     "@emotion/cache": "^11.10.3",
@@ -25,6 +29,15 @@
     "@types/react-dom": "18.0.6",
     "eslint": "8.25.0",
     "eslint-config-next": "12.3.1",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1",
     "typescript": "4.8.4"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "jsxSingleQuote": true
   }
 }

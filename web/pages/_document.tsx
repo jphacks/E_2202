@@ -1,22 +1,22 @@
-import * as React from 'react';
-import Document, { Html, Head, Main, NextScript } from 'next/document';
 import createEmotionServer from '@emotion/server/create-instance';
-import theme from '../src/theme';
+import Document, { Html, Head, Main, NextScript } from 'next/document';
+import * as React from 'react';
 import createEmotionCache from '../src/createEmotionCache';
+import theme from '../src/theme';
 
 export default class MyDocument extends Document {
   render() {
     return (
-      <Html lang="en">
+      <Html lang='en'>
         <Head>
           {/* PWA primary color */}
-          <meta name="theme-color" content={theme.palette.primary.main} />
-          <link rel="shortcut icon" href="/favicon.ico" />
+          <meta name='theme-color' content={theme.palette.primary.main} />
+          <link rel='shortcut icon' href='/favicon.ico' />
           <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+            rel='stylesheet'
+            href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap'
           />
-          <meta name="emotion-insertion-point" content="" />
+          <meta name='emotion-insertion-point' content='' />
           {(this.props as any).emotionStyleTags}
         </Head>
         <body>
