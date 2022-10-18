@@ -1,9 +1,9 @@
-name: Heroku dev backend deploy
+name: Heroku backend deploy
 
 on:
   push:
     branches:
-      - 'feature/#39*' # dev環境にデプロイしたい際はこちらのブランチ番号を変更してください
+      - master
 
 jobs:
   build:
@@ -13,6 +13,6 @@ jobs:
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_BACKEND_API_KEY}} #herokuのAPIのkey
-          heroku_app_name: "yukusi-backend-dev" #herokuアプリの名前
+          heroku_app_name: "yukusi-backend" #herokuアプリの名前
           heroku_email: "k218571@ie.u-ryukyu.ac.jp" #アカウントのメールアドレス
           appdir: "server" #サブディレクトリ名
