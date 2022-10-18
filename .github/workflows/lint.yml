@@ -8,7 +8,7 @@ on:
       - '*.py'
 
 jobs:
-  lint: # 任意のジョブ名
+  lint:
     name: Check the source code
     runs-on: ubuntu-latest
     steps:
