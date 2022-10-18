@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-error_name_pattern = re.compile(r"(.+)?Error.+")
+error_name_pattern = re.compile(r"(.+)?[e|E]rror.+")
 not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
