@@ -2,8 +2,6 @@ name: Lint
 
 on:
   push:
-    branches:
-      - feature/add_linter_formatter_ci
     paths:
       - '*.py'
 
