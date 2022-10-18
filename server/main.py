@@ -6,6 +6,8 @@ from pydantic import (
     BaseModel,
 )
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
+
 
 
 app = FastAPI()
@@ -31,6 +33,12 @@ class ImportantErrorLines(BaseModel):
 
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
+    """
+    Extract lines containing the word 'Error'
+    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
+    >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
+    ImportantErrorLines(result=[" AttributeError: 'int' object has no attribute 'append'"])
+    """
     lines = error_contents.error_text.splitlines()
     result = []
     for line in lines:
@@ -40,3 +48,8 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
         if not_found_pattern.match(line):
             result.append(line)
     return ImportantErrorLines(result=result)
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

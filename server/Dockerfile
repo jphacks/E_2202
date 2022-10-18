@@ -5,7 +5,6 @@ ENTRYPOINT  ["uvicorn", "--host", "0.0.0.0", "main:app"]
 
 FROM base as dev
 
-RUN pip install mypy 
-RUN pip install flake8
-RUN pip install black
+
+RUN pip install mypy requests pytest flake8 black
 CMD  ["--reload"]
