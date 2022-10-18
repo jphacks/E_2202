@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "format": "npm run lint:fix; prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'"
+    "prettier:check": "prettier --list-different --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'",
+    "prettier:write": "prettier --write  --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'",
+    "format": "npm run lint:fix; npm run prettier:write"
   },
   "dependencies": {
     "@emotion/cache": "^11.10.3",
