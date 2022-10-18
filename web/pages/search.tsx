@@ -66,7 +66,6 @@ export default function Search() {
             label='Sample Search Query'
             inputProps={{ readOnly: true }}
             value={ [...queryErrorContents, 'in', language, 'on', os].join(' ') }
-            onClick={() => navigator.clipboard.writeText([...queryErrorContents, 'in', language, 'on', os].join(' '))}
           >
           </TextField>
         }
