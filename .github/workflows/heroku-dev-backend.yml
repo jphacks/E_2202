@@ -3,7 +3,7 @@ name: Heroku dev backend deploy
 on:
   push:
     branches:
-      - 'feature/#39*'
+      - '*'
 
 jobs:
   build:
