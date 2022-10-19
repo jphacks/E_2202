@@ -56,18 +56,18 @@ def find_pyfile(line: str) -> str:
     return ''
 
 
-def get_python_libs(lines: list[str]) -> tuple[set[str], set[str]]:
+def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
-    ({'multiprocessing'}, set())
+    (['multiprocessing'], [])
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started'])
-    (set(), {'uvicorn'})
+    ([], ['uvicorn'])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
-    ({'multiprocessing', 'asyncio'}, {'uvicorn'})
+    (['asyncio', 'multiprocessing'], ['uvicorn'])
     """
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
@@ -100,6 +100,7 @@ def python_error(error: str) -> list[str]:
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
     Extract lines containing the word 'Error'
+    >>> import asyncio
     >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
     ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
