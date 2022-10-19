@@ -30,5 +30,5 @@ jobs:
     - name: Test with Pytest
       run: pytest . -v
     - name : Test with doctest
-      run : python -m doctest *.py
+      run : python -m doctest *.py -v
         
