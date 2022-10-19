@@ -29,7 +29,8 @@ jobs:
     - name: Code Check with mypy
       run: |
         mypy --strict .
-    - name: Test with pytest and doctes
+    - name: Test with pytest 
         pytest .
+    - name: Test with Doctest
         python -m doctest *.py
         
