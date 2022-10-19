@@ -37,6 +37,7 @@ class ImportantErrorLines(BaseModel):
     result: list[str]
 
 
+# test
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
