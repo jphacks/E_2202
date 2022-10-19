@@ -45,9 +45,16 @@ def find_pyfile(line: str) -> str:
     '/usr/local/lib/python3.10/site-packages/uvicorn/importer.py'
     >>> find_pyfile('File "/usr/local/lib/python3.10/site-packages/uvicorn/config.py", line 479, in load')
     '/usr/local/lib/python3.10/site-packages/uvicorn/config.py'
+    >>> find_pyfile('~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py in nll_loss(input, target, weight, size_average, ignore_index, reduce, reduction)')
+    '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py'
+    >>> find_pyfile('File "PPO.py", line 275, in <module>')
+    'PPO.py'
     """
-    pyfile_pattern = re.compile(r"\/[a-zA-Z0-9._-]+")
-    return ''.join(pyfile_pattern.findall(line))
+    pyfile_pattern = re.compile(r"(\~|\/)?(\/|[a-zA-Z0-9._-])+\.py")
+    pyfile_path = pyfile_pattern.search(line)
+    if pyfile_path:
+        return pyfile_path[0]
+    return ''
 
 
 def python_error(error: str) -> str:
