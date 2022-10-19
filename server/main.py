@@ -20,7 +20,7 @@ app.add_middleware(
 error_name_pattern = re.compile("(.+)?Error.+")
 not_found_pattern = re.compile(".*N(ot|OT)[ |_]?F(ound|OUND).+")
 
-
+# tests
 class ErrorContents(BaseModel):
     error_text: str
 
