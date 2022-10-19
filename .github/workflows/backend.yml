@@ -27,8 +27,8 @@ jobs:
       run: flake8 --max-line-length=120
     - name: Code Check with mypy
       run: mypy --strict .
-    - name: Test with Pytest and Doctest
-      run: |
-        pytest . -v
-        python -m doctest *.py
+    - name: Test with Pytest
+      run: pytest . -v
+    - name : Test with doctest
+      run : python -m doctest *.py
         
