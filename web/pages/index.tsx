@@ -7,8 +7,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import * as React from 'react';
 import { Router  as redu, useRouter } from 'next/router';
+import * as React from 'react';
 
 export default function Search() {
   const [os, setOS] = React.useState('');
