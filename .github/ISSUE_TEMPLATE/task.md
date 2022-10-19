@@ -1,5 +1,5 @@
 ---
-name: タスク
+name: task
 about: issueにタスクを書く際のテンプレートです
 title: ''
 labels: ''
