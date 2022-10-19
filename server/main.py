@@ -8,6 +8,7 @@ from pydantic import (
 from fastapi.middleware.cors import CORSMiddleware
 
 
+# test
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
