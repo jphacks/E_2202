@@ -21,8 +21,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Install mypy requests pytest flake8 
-      run: pip install mypy requests pytest flake8 
+    - name: Install mypy requests pytest flake8 fastapi pydantic fastapi.middleware.cors fastapi.testclient
+      run: pip install mypy requests pytest flake8 fastapi pydantic fastapi.middleware.cors fastapi.testclient
     - name: Lint with flake8
       run: flake8 --max-line-length=120
     - name: Code Check with mypy
