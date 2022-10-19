@@ -43,6 +43,9 @@ export default function Search() {
       .then((data) => {
         console.log(data);
         setQueryErrorContents(data.result as []);
+      })
+      .catch((error) => {
+        console.error('通信に失敗しました', error);
       });
   };
 
