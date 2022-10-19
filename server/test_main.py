@@ -5,7 +5,7 @@ from main import app
 client = TestClient(app)
 
 
-def test_parse_error_text_passed():
+def test_parse_error_text_passed() -> None:
     response = client.post(
         "error_parse",
         json={"error_text": "node:internal/modules/cjs/loader:988\n  \
