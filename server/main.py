@@ -39,15 +39,29 @@ class ImportantErrorLines(BaseModel):
     result: list[str]
 
 
+def find_pyfile(line: str) -> str:
+    """Find python file path from input
+    >>> find_pyfile('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py')
+    '/usr/local/lib/python3.10/site-packages/uvicorn/importer.py'
+    >>> find_pyfile('File "/usr/local/lib/python3.10/site-packages/uvicorn/config.py", line 479, in load')
+    '/usr/local/lib/python3.10/site-packages/uvicorn/config.py'
+    """
+    pyfile_pattern = re.compile(r"\/[a-zA-Z0-9._-]+")
+    return ''.join(pyfile_pattern.findall(line))
+
+
 def python_error(error: str) -> str:
     """
     """
     last_line = error.splitlines()[-1]
     last_line = ' '.join(last_line.split())# 無駄なスペースの除去
     error_type, description = last_line.split(":")
-    print(error_type)
     if error_type == "ImportError":
         return unix_path_pattern.sub('__FILE__', last_line)
+
+    lines = [' '.join(line.split()) for line in error.splitlines()]
+    fname_in_stack = filter(lambda line: line.startswith('FILE "'), lines)
+    fnames = set(map(lambda x: find_pyfile, fname_in_stack))
     return last_line
 
 
@@ -57,7 +71,7 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     Extract lines containing the word 'Error'
     >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=[" AttributeError: 'int' object has no attribute 'append'"])
+    ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
     """
     result = [python_error(error_contents.error_text)]
     return ImportantErrorLines(result=result)
