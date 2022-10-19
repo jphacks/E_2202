@@ -43,7 +43,9 @@ def find_pyfile(line: str) -> str:
     '/usr/local/lib/python3.10/site-packages/uvicorn/importer.py'
     >>> find_pyfile('File "/usr/local/lib/python3.10/site-packages/uvicorn/config.py", line 479, in load')
     '/usr/local/lib/python3.10/site-packages/uvicorn/config.py'
-    >>> find_pyfile('~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py in nll_loss(input, target, weight, size_average, ignore_index, reduce, reduction)')
+    >>> find_pyfile(\
+        '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py in nll_loss(input, target, weight,'\
+        ' size_average, ignore_index, reduce, reduction)')
     '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py'
     >>> find_pyfile('File "PPO.py", line 275, in <module>')
     'PPO.py'
@@ -59,7 +61,8 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
     (['multiprocessing'], [])
-    >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started'])
+    >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
+        ' line 76, in subprocess_started'])
     ([], ['uvicorn'])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
@@ -74,6 +77,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     ])
     (['asyncio', 'multiprocessing'], ['uvicorn'])
     """
+
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
     def extract_libname(path: str, target: str) -> str:
@@ -95,7 +99,7 @@ def python_error(error: str) -> list[str]:
     """
     """
     last_line = error.splitlines()[-1]
-    last_line = ' '.join(last_line.split())# 無駄なスペースの除去
+    last_line = ' '.join(last_line.split())  # 無駄なスペースの除去
     error_type, *description = last_line.split(":")
     if error_type == "ImportError":
         return [unix_path_pattern.sub('__FILE__', last_line)]
