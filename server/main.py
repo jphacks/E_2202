@@ -71,15 +71,19 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     """
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
+    def extract_libname(path: str, target: str) -> str:
+        libname = path.split(target)[1].split('/')[1]
+        return libname.replace('.py', '')
+
     fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
     fnames = list(map(find_pyfile, fname_in_stack))
     # 外部ライブラリを抽出
     extlib_paths = filter(lambda x: SITE_PACKAGES in x, fnames)
-    extlib_names = map(lambda x: x.split(SITE_PACKAGES)[1].split('/')[1], extlib_paths)
+    extlib_names = map(lambda x: extract_libname(x, SITE_PACKAGES), extlib_paths)
     # 標準ライブラリを抽出
     stdlib_paths = filter(lambda x: PYTHON3 in x and SITE_PACKAGES not in x, fnames)
-    stdlib_names = map(lambda x: x.split(PYTHON3)[1].split('/')[1], stdlib_paths)
-    return set(stdlib_names), set(extlib_names)
+    stdlib_names = map(lambda x: extract_libname(x, PYTHON3), stdlib_paths)
+    return sorted(set(stdlib_names)), sorted(set(extlib_names))
 
 
 def python_error(error: str) -> list[str]:
