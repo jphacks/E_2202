@@ -29,6 +29,6 @@ jobs:
       run: mypy --strict .
     - name: Test with Pytest and Doctest
       run: |
-        pytest .
+        pytest . -v
         python -m doctest *.py
         
