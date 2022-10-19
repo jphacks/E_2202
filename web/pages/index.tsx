@@ -8,6 +8,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
+import { Router  as redu, useRouter } from 'next/router';
 
 export default function Search() {
   const [os, setOS] = React.useState('');
@@ -29,6 +30,8 @@ export default function Search() {
     setError(event.target.value as string);
   };
 
+  const router = useRouter()
+
   const handleClick = () => {
     console.log(`${os}, ${language}, ${error}`);
     setQueryBuildFinished(true);
@@ -43,6 +46,7 @@ export default function Search() {
       .then((data) => {
         console.log(data);
         setQueryErrorContents(data.result as []);
+        return router.push(`https://google.com/search?q=${os}+${language}+${error}+-site:sejuku.net&lr=lang_ja`)
       });
   };
 
