@@ -24,13 +24,11 @@ jobs:
     - name: Install mypy requests pytest flake8 
       run: pip install mypy requests pytest flake8 
     - name: Lint with flake8
-      run: |
-        flake8 --max-line-length=120
+      run: flake8 --max-line-length=120
     - name: Code Check with mypy
+      run: mypy --strict .
+    - name: Test with Pytest and Doctest
       run: |
-        mypy --strict .
-    - name: Test with pytest 
         pytest .
-    - name: Test with Doctest
         python -m doctest *.py
         
