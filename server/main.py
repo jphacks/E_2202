@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from fastapi import (
     FastAPI,
 )
@@ -57,19 +58,44 @@ def find_pyfile(line: str) -> str:
     return ''
 
 
-def python_error(error: str) -> str:
+def get_python_libs(lines: list[str]) -> tuple[set[str], set[str]]:
+    """スタックトレースにあるライブラリを抽出する
+    >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
+    ({'multiprocessing'}, set())
+    >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started'])
+    (set(), {'uvicorn'})
+    >>> get_python_libs([\
+        'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
+        'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
+        'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
+    ])
+    ({'multiprocessing', 'asyncio'}, {'uvicorn'})
+    """
+    PYTHON3 = 'python3.'
+    SITE_PACKAGES = 'site-packages'
+    fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
+    fnames = list(map(find_pyfile, fname_in_stack))
+    # 外部ライブラリを抽出
+    extlib_paths = filter(lambda x: SITE_PACKAGES in x, fnames)
+    extlib_names = map(lambda x: x.split(SITE_PACKAGES)[1].split('/')[1], extlib_paths)
+    # 標準ライブラリを抽出
+    stdlib_paths = filter(lambda x: PYTHON3 in x and SITE_PACKAGES not in x, fnames)
+    stdlib_names = map(lambda x: x.split(PYTHON3)[1].split('/')[1], stdlib_paths)
+    return set(stdlib_names), set(extlib_names)
+
+
+def python_error(error: str) -> list[str]:
     """
     """
     last_line = error.splitlines()[-1]
     last_line = ' '.join(last_line.split())# 無駄なスペースの除去
-    error_type, description = last_line.split(":")
+    error_type, *description = last_line.split(":")
     if error_type == "ImportError":
-        return unix_path_pattern.sub('__FILE__', last_line)
+        return [unix_path_pattern.sub('__FILE__', last_line)]
 
     lines = [' '.join(line.split()) for line in error.splitlines()]
-    fname_in_stack = filter(lambda line: line.startswith('FILE "'), lines)
-    fnames = set(map(lambda x: find_pyfile, fname_in_stack))
-    return last_line
+    stdlibs, extlibs = get_python_libs(lines)
+    return [*stdlibs, *extlibs, last_line]
 
 
 @app.post("/error_parse", response_model=ImportantErrorLines)
@@ -80,7 +106,7 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
     ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
     """
-    result = [python_error(error_contents.error_text)]
+    result = python_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
