@@ -5,7 +5,6 @@ from main import app
 client = TestClient(app)
 
 
-# test
 def test_parse_error_text_passed() -> None:
     response = client.post(
         "error_parse",
