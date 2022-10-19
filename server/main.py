@@ -80,6 +80,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
 
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
+
     def extract_libname(path: str, target: str) -> str:
         libname = path.split(target)[1].split('/')[1]
         return libname.replace('.py', '')
