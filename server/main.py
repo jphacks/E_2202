@@ -48,22 +48,6 @@ def python_error(error: str) -> str:
     print(error_type)
     if error_type == "ImportError":
         return unix_path_pattern.sub('__FILE__', last_line)
-    elif error_type == "AttributeError":
-        return last_line
-    elif error_type == "TypeError":
-        return last_line
-    elif error_type == "ValueError":
-        return last_line
-    elif error_type == "NameError":
-        return last_line
-    elif error_type == "IndexError":
-        return last_line
-    elif error_type == "KeyError":
-        return last_line
-    elif error_type == "FileNotFoundError":
-        return last_line
-    elif error_type == "FileExistsError":
-        return last_line
     return last_line
 
 
