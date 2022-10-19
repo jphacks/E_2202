@@ -63,6 +63,12 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started'])
     ([], ['uvicorn'])
     >>> get_python_libs([\
+        'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
+        'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
+        'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
+    ])
+    (['doctest'], [])
+    >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
