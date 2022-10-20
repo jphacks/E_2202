@@ -14,8 +14,8 @@ export default function Search() {
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [error, setError] = React.useState('');
-  const [queryErrorContents, setQueryErrorContents] = React.useState([]);
   const [analyzedError, setAnalyzedError] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState('');
   const BACKEND_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
   const handleChangeOS = (event: SelectChangeEvent) => {
@@ -41,8 +41,7 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-        setQueryErrorContents(data.result as []);
+        setSearchQuery(buildSearchQuery(data.result as []));
         setAnalyzedError(error);
       })
       .catch((error) => {
@@ -61,12 +60,15 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-        setQueryErrorContents(data.result as []);
+        setSearchQuery(buildSearchQuery(data.result as []));
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
       });
+  };
+
+  const buildSearchQuery = (queryErrorContents: []) => {
+    return [...queryErrorContents, 'in', language, 'on', os].join(' ');
   };
 
   return (
@@ -147,7 +149,7 @@ export default function Search() {
           fullWidth
           label='Sample Search Query'
           inputProps={{ readOnly: true }}
-          value={[...queryErrorContents, 'in', language, 'on', os].join(' ')}
+          value={searchQuery}
         ></TextField>
         <TextField
           label='エラー文'
