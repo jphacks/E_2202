@@ -1,7 +1,11 @@
-from dataclasses import dataclass
-from enum import Enum, auto
 import re
-from typing import Callable
+from enum import Enum, auto
+from typing import (
+    Any,
+    Callable,
+    Optional,
+)
+
 from fastapi import (
     FastAPI,
 )
@@ -9,6 +13,7 @@ from pydantic import (
     BaseModel,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic.dataclasses import dataclass
 
 
 app = FastAPI()
@@ -32,34 +37,35 @@ url_pattern = re.compile(
 unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
-class ErrorContents(BaseModel):
-    error_text: str
-
-
-class ImportantErrorLines(BaseModel):
-    result: list[str]
-
-
 class TextType(Enum):
     ERROR_MESSAGE = auto()
     LIBRARY_NAME = auto()
 
 
-@dataclass
+class ORMConfig:
+    orm_mode = True
+
+
+@dataclass(config=ORMConfig)
 class TextIndices:
     start: int
-    end: int
+    end: int  # end - 1 が python の index
 
 
-@dataclass
-class HighliteInfo:
+@dataclass(config=ORMConfig)
+class HighlightTextInfo:
     row_idx: int
     col_idxes: TextIndices
     text: str
     type: TextType
 
+    def __lt__(self, other: Any) -> Any:
+        if not isinstance(other, HighlightTextInfo):
+            NotImplementedError(f"HighlightInfo and {type(other)} are not implemented < operator.")
+        return self.row_idx < other.row_idx
 
-def find_pyfile(line: str) -> str:
+
+def find_pyfile(line: str) -> Optional[tuple[str, TextIndices]]:
     """Find python file path from input
     >>> find_pyfile('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py')
     ('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py', TextIndices(start=0, end=59))
@@ -75,11 +81,11 @@ def find_pyfile(line: str) -> str:
     pyfile_pattern = re.compile(r"(\~|\/)?(\/|[a-zA-Z0-9._-])+\.py")
     pyfile_path = pyfile_pattern.search(line)
     if pyfile_path:
-        return pyfile_path[0]
-    return ''
+        return pyfile_path[0], TextIndices(pyfile_path.start(), pyfile_path.end())
+    return None
 
 
-def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
+def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[HighlightTextInfo]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
     ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
@@ -120,45 +126,67 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     SITE_PACKAGES = 'site-packages'
     DIST_PACKAGES = 'dist-packages'
 
+    def _extract_libname(path: str, indices: TextIndices, target: str) -> tuple[str, TextIndices]:
         """
-        >>> _extract_libname("/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", TextIndices(start=0, end=65), DIST_PACKAGES)
+        >>> _extract_libname(\
+"/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", TextIndices(start=0, end=65), DIST_PACKAGES)
         ('torch', TextIndices(start=39, end=44))
         """
+        pre, suc = path.split(target)
+        t, libname, *_ = suc.split('/')  # t には /python3.10/ の .10 などが入る可能性がある
+        libname = libname.replace('.py', '')
+        start = 1 + indices.start + len(pre+target) + len(t)
+        end = start + len(libname)
+        return libname, TextIndices(start, end)
 
-    def extract_libnames(target: str, filter_: Callable[[str], bool], fnames: list[str]) -> set[str]:
+    def extract_libnames(target: str, filter_: Callable[[tuple[int, tuple[str, TextIndices]]], bool],
+                         fnames: list[tuple[int, tuple[str, TextIndices]]]
+                         ) -> list[tuple[int, tuple[str, TextIndices]]]:
         paths = filter(filter_, fnames)
-        return set(map(lambda x: _extract_libname(x, target), paths))
+        return [(row_idx, _extract_libname(path, indices, target)) for row_idx, (path, indices) in paths]
 
-    fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
-    fnames = list(map(find_pyfile, fname_in_stack))
+    def transform(input_: tuple[int, tuple[str, TextIndices]]) -> HighlightTextInfo:
+        (row_idx, (text, indices)) = input_
+        return HighlightTextInfo(row_idx, indices, text, TextType.LIBRARY_NAME)
+
+    fname_in_stack = filter(lambda x: (x[0], x[1].startswith('File "')), enumerate(lines, start=1))
+    _fnames = [(row_idx, find_pyfile(line))for row_idx, line in fname_in_stack]
+    fnames = [(row_idx, pyfile) for row_idx, pyfile in _fnames if pyfile is not None]
     # 外部ライブラリを抽出
-    site_packages = extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x, fnames)
-    dist_packages = extract_libnames(DIST_PACKAGES, lambda x: DIST_PACKAGES in x, fnames)
+    site_packages = map(transform, extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x[1][0], fnames))
+    dist_packages = map(transform, extract_libnames(DIST_PACKAGES, lambda x: DIST_PACKAGES in x[1][0], fnames))
     # 標準ライブラリを抽出
-    stdlibs = extract_libnames(
-        PYTHON3, lambda x: (PYTHON3 in x) and (SITE_PACKAGES not in x) and (DIST_PACKAGES not in x),
+    stdlibs = map(transform, extract_libnames(
+        PYTHON3, lambda x: (PYTHON3 in x[1][0]) and (SITE_PACKAGES not in x[1][0]) and (DIST_PACKAGES not in x[1][0]),
         fnames
-    )
-    return sorted(stdlibs), sorted(site_packages | dist_packages)
+    ))
+    return sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
 
 
-def python_error(error: str) -> list[str]:
+def python_error(error: str) -> list[HighlightTextInfo]:
     """
     """
     lines = error.splitlines()
     result = []
-    _, last_line = len(lines), lines[-1]
+    row_idx, last_line = len(lines), lines[-1]
     error_type, *description = last_line.split(":")
     if error_type == "ImportError":
         error_text = unix_path_pattern.sub('__FILE__', last_line)
         result.append(
-            error_text
-            # HighliteInfo(row_idx=row_idx, col_idxes=(1, len(last_line)), text=error_text, type=TextType.ERROR_MESSAGE)
+            HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
         )
 
-    lines = [' '.join(line.split()) for line in error.splitlines()]
-    stdlibs, extlibs = get_python_libs(lines)
-    return [*stdlibs, *extlibs, last_line]
+    stdlibs, extlibs = get_python_libs(error.splitlines())
+    last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), last_line, TextType.ERROR_MESSAGE)
+    return [*stdlibs, *extlibs, last_message]
+
+
+class ErrorContents(BaseModel):
+    error_text: str
+
+
+class ImportantErrorLines(BaseModel):
+    result: list[HighlightTextInfo]
 
 
 @app.post("/error_parse", response_model=ImportantErrorLines)
@@ -172,7 +200,7 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
-    result = python_error(error_contents.error_text)
+    result = sorted(python_error(error_contents.error_text))
     return ImportantErrorLines(result=result)
 
 

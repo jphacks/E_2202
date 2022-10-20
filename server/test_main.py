@@ -34,5 +34,16 @@ def test_parse_error_text_passed() -> None:
     )
     assert response.status_code == 200
     assert response.json() == {
-        'result': ['http', 'socketserver', 'flask', 'werkzeug', 'PermissionError: [Errno 13] Permission denied']
+        'result': [
+            {'row_idx':  3, 'col_idxes': {'start': 54, 'end': 59}, 'text': 'flask',        'type': 2},
+            {'row_idx':  5, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx':  7, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx':  9, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx': 11, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx': 13, 'col_idxes': {'start': 40, 'end': 52}, 'text': 'socketserver', 'type': 2},
+            {'row_idx': 15, 'col_idxes': {'start': 40, 'end': 44}, 'text': 'http',         'type': 2},
+            {'row_idx': 17, 'col_idxes': {'start': 40, 'end': 52}, 'text': 'socketserver', 'type': 2},
+            {'row_idx': 19, 'col_idxes': {'start': 0, 'end': 45},
+             'text': 'PermissionError: [Errno 13] Permission denied', 'type': 1},
+        ]
     }
