@@ -166,7 +166,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
 def python_error(error: str) -> list[HighlightTextInfo]:
     """
     """
-    lines = error.splitlines()
+    lines = error.rstrip('\n').splitlines()
     result = []
     row_idx, last_line = len(lines), lines[-1]
     error_type, *description = last_line.split(":")
