@@ -113,6 +113,7 @@ def python_error(error: str) -> list[str]:
 
 def another_language_error(error: str) -> list[str]:
     lines = error.splitlines()
+    result = []
     for line in lines:
         if error_name_pattern.match(line):
             result.append(line)
@@ -129,7 +130,8 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
     Extract lines containing the word 'Error'
     >>> import asyncio
-    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'", 'language': 'Python'}
+    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object \
+        has no attribute 'append'", 'language': 'Python'}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
     ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
     """
@@ -137,7 +139,7 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     if error_contents.language == 'Python':
         result = python_error(error_contents.error_text)
         return ImportantErrorLines(result=result)
-    
+
     result = another_language_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
