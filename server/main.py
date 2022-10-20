@@ -130,7 +130,11 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     >>> import asyncio
     >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
+    ImportantErrorLines(result=[{
+        "row_idx": 2,
+        "col_idxes": {"start": 1, "end": 54},
+        "text": " AttributeError: 'int' object has no attribute 'append'"
+    }])
     """
     result = python_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
