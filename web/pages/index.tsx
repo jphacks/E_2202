@@ -1,12 +1,10 @@
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
   Alert,
-  Collapse,
   Fade,
   IconButton,
   InputAdornment,
   OutlinedInput,
-  Snackbar,
   Stack,
 } from '@mui/material';
 import Box from '@mui/material/Box';
