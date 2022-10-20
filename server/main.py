@@ -82,36 +82,48 @@ def find_pyfile(line: str) -> str:
 def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
-    ([HighliteInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47), text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>)], [])
+    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+ text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
         ' line 76, in subprocess_started'])
-    ([], [HighliteInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn',\
+ type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
         'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
         'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
     ])
-    ([HighliteInfo(row_idx=2, col_idxes=TextIndices(start=32, end=39), text='doctest', type=<TextType.LIBRARY_NAME: 2>)], [])
+    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=39), text='doctest',\
+ type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
-    ([HighliteInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47), text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>), HighliteInfo(row_idx=3, col_idxes=TextIndices(start=32, end=39), text='asyncio', type=<TextType.LIBRARY_NAME: 2>)], [HighliteInfo(row_idx=3, col_idxes=TextIndices(start=46, end=53), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
+    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+ text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>),\
+ HighlightTextInfo(row_idx=3, col_idxes=TextIndices(start=32, end=39),\
+ text='asyncio', type=<TextType.LIBRARY_NAME: 2>)],\
+ [HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=46, end=53),\
+ text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
     ])
-    ([], [HighliteInfo(row_idx=1, col_idxes=TextIndices(start=45, end=50), text='torch', type=<TextType.LIBRARY_NAME: 2>), HighliteInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52),\
+ text='uvicorn', type=<TextType.LIBRARY_NAME: 2>),\
+ HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=45, end=50),\
+ text='torch', type=<TextType.LIBRARY_NAME: 2>)])
     """
 
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
     DIST_PACKAGES = 'dist-packages'
 
-    def _extract_libname(path: str, target: str) -> str:
-        libname = path.split(target)[1].split('/')[1]
-        return libname.replace('.py', '')
+        """
+        >>> _extract_libname("/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", TextIndices(start=0, end=65), DIST_PACKAGES)
+        ('torch', TextIndices(start=39, end=44))
+        """
 
     def extract_libnames(target: str, filter_: Callable[[str], bool], fnames: list[str]) -> set[str]:
         paths = filter(filter_, fnames)
@@ -156,11 +168,9 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     >>> import asyncio
     >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=[{
-        "row_idx": 2,
-        "col_idxes": {"start": 1, "end": 54},
-        "text": " AttributeError: 'int' object has no attribute 'append'"
-    }])
+    ImportantErrorLines(result=[\
+HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
+text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
     result = python_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
