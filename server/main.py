@@ -76,6 +76,11 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
     (['asyncio', 'multiprocessing'], ['uvicorn'])
+    >>> get_python_libs([\
+        'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
+        'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
+    ])
+    ([], ['torch', 'uvicorn'])
     """
 
     PYTHON3 = 'python3.'
