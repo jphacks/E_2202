@@ -77,7 +77,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     ])
     (['asyncio', 'multiprocessing'], ['uvicorn'])
     >>> get_python_libs([\
-        'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
+        'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
     ])
     ([], ['torch', 'uvicorn'])
@@ -85,6 +85,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
 
     PYTHON3 = 'python3.'
     SITE_PACKAGES = 'site-packages'
+    DIST_PACKAGES = 'dist-packages'
 
     def extract_libname(path: str, target: str) -> str:
         libname = path.split(target)[1].split('/')[1]
@@ -93,12 +94,14 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
     fnames = list(map(find_pyfile, fname_in_stack))
     # 外部ライブラリを抽出
-    extlib_paths = filter(lambda x: SITE_PACKAGES in x, fnames)
-    extlib_names = map(lambda x: extract_libname(x, SITE_PACKAGES), extlib_paths)
+    site_packages_paths = filter(lambda x: SITE_PACKAGES in x, fnames)
+    site_packages_lib_names = set(map(lambda x: extract_libname(x, SITE_PACKAGES), site_packages_paths))
+    dist_packages_paths = filter(lambda x: DIST_PACKAGES in x, fnames)
+    dist_packages_lib_names = set(map(lambda x: extract_libname(x, DIST_PACKAGES), dist_packages_paths))
     # 標準ライブラリを抽出
-    stdlib_paths = filter(lambda x: PYTHON3 in x and SITE_PACKAGES not in x, fnames)
+    stdlib_paths = filter(lambda x: (PYTHON3 in x) and (SITE_PACKAGES not in x) and (DIST_PACKAGES not in x), fnames)
     stdlib_names = map(lambda x: extract_libname(x, PYTHON3), stdlib_paths)
-    return sorted(set(stdlib_names)), sorted(set(extlib_names))
+    return sorted(set(stdlib_names)), sorted(site_packages_lib_names | dist_packages_lib_names)
 
 
 def python_error(error: str) -> list[str]:
