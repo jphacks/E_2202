@@ -1,4 +1,5 @@
 import re
+from typing import Callable
 from fastapi import (
     FastAPI,
 )
@@ -26,7 +27,7 @@ not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
 )
-unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\' ]+[\"\']?")
+unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
 class ErrorContents(BaseModel):
@@ -37,6 +38,91 @@ class ImportantErrorLines(BaseModel):
     result: list[str]
 
 
+def find_pyfile(line: str) -> str:
+    """Find python file path from input
+    >>> find_pyfile('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py')
+    '/usr/local/lib/python3.10/site-packages/uvicorn/importer.py'
+    >>> find_pyfile('File "/usr/local/lib/python3.10/site-packages/uvicorn/config.py", line 479, in load')
+    '/usr/local/lib/python3.10/site-packages/uvicorn/config.py'
+    >>> find_pyfile(\
+        '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py in nll_loss(input, target, weight,'\
+        ' size_average, ignore_index, reduce, reduction)')
+    '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py'
+    >>> find_pyfile('File "PPO.py", line 275, in <module>')
+    'PPO.py'
+    """
+    pyfile_pattern = re.compile(r"(\~|\/)?(\/|[a-zA-Z0-9._-])+\.py")
+    pyfile_path = pyfile_pattern.search(line)
+    if pyfile_path:
+        return pyfile_path[0]
+    return ''
+
+
+def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
+    """スタックトレースにあるライブラリを抽出する
+    >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
+    (['multiprocessing'], [])
+    >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
+        ' line 76, in subprocess_started'])
+    ([], ['uvicorn'])
+    >>> get_python_libs([\
+        'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
+        'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
+        'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
+    ])
+    (['doctest'], [])
+    >>> get_python_libs([\
+        'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
+        'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
+        'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
+    ])
+    (['asyncio', 'multiprocessing'], ['uvicorn'])
+    >>> get_python_libs([\
+        'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
+        'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
+    ])
+    ([], ['torch', 'uvicorn'])
+    """
+
+    PYTHON3 = 'python3.'
+    SITE_PACKAGES = 'site-packages'
+    DIST_PACKAGES = 'dist-packages'
+
+    def _extract_libname(path: str, target: str) -> str:
+        libname = path.split(target)[1].split('/')[1]
+        return libname.replace('.py', '')
+
+    def extract_libnames(target: str, filter_: Callable[[str], bool], fnames: list[str]) -> set[str]:
+        paths = filter(filter_, fnames)
+        return set(map(lambda x: _extract_libname(x, target), paths))
+
+    fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
+    fnames = list(map(find_pyfile, fname_in_stack))
+    # 外部ライブラリを抽出
+    site_packages = extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x, fnames)
+    dist_packages = extract_libnames(DIST_PACKAGES, lambda x: DIST_PACKAGES in x, fnames)
+    # 標準ライブラリを抽出
+    stdlibs = extract_libnames(
+        PYTHON3, lambda x: (PYTHON3 in x) and (SITE_PACKAGES not in x) and (DIST_PACKAGES not in x),
+        fnames
+    )
+    return sorted(stdlibs), sorted(site_packages | dist_packages)
+
+
+def python_error(error: str) -> list[str]:
+    """
+    """
+    last_line = error.splitlines()[-1]
+    last_line = ' '.join(last_line.split())  # 無駄なスペースの除去
+    error_type, *description = last_line.split(":")
+    if error_type == "ImportError":
+        return [unix_path_pattern.sub('__FILE__', last_line)]
+
+    lines = [' '.join(line.split()) for line in error.splitlines()]
+    stdlibs, extlibs = get_python_libs(lines)
+    return [*stdlibs, *extlibs, last_line]
+
+
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
@@ -44,17 +130,9 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     >>> import asyncio
     >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=[" AttributeError: 'int' object has no attribute 'append'"])
+    ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
     """
-    lines = error_contents.error_text.splitlines()
-    result = []
-    for line in lines:
-        if error_name_pattern.match(line):
-            result.append(line)
-        elif not_found_pattern.match(line):
-            result.append(line)
-    result = url_pattern.sub("__URL__", "\n".join(result)).split("\n")
-    result = unix_path_pattern.sub("__FILE__", "\n".join(result)).split("\n")
+    result = python_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
