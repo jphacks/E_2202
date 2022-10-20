@@ -112,7 +112,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
 def python_error(error: str) -> list[str]:
     """
     """
-    last_line = error.splitlines()[-1]
+    last_line = error.rstrip('\n').splitlines()[-1]
     last_line = ' '.join(last_line.split())  # 無駄なスペースの除去
     error_type, *description = last_line.split(":")
     if error_type == "ImportError":
