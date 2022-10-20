@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from enum import Enum, auto
 import re
 from typing import Callable
 from fastapi import (
@@ -38,18 +40,37 @@ class ImportantErrorLines(BaseModel):
     result: list[str]
 
 
+class TextType(Enum):
+    ERROR_MESSAGE = auto()
+    LIBRARY_NAME = auto()
+
+
+@dataclass
+class TextIndices:
+    start: int
+    end: int
+
+
+@dataclass
+class HighliteInfo:
+    row_idx: int
+    col_idxes: TextIndices
+    text: str
+    type: TextType
+
+
 def find_pyfile(line: str) -> str:
     """Find python file path from input
     >>> find_pyfile('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py')
-    '/usr/local/lib/python3.10/site-packages/uvicorn/importer.py'
+    ('/usr/local/lib/python3.10/site-packages/uvicorn/importer.py', TextIndices(start=1, end=59))
     >>> find_pyfile('File "/usr/local/lib/python3.10/site-packages/uvicorn/config.py", line 479, in load')
-    '/usr/local/lib/python3.10/site-packages/uvicorn/config.py'
+    ('/usr/local/lib/python3.10/site-packages/uvicorn/config.py', TextIndices(start=7, end=63))
     >>> find_pyfile(\
         '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py in nll_loss(input, target, weight,'\
         ' size_average, ignore_index, reduce, reduction)')
-    '~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py'
+    ('~/opt/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py', TextIndices(start=1, end=66))
     >>> find_pyfile('File "PPO.py", line 275, in <module>')
-    'PPO.py'
+    ('PPO.py', TextIndices(start=7, end=12))
     """
     pyfile_pattern = re.compile(r"(\~|\/)?(\/|[a-zA-Z0-9._-])+\.py")
     pyfile_path = pyfile_pattern.search(line)
@@ -112,11 +133,16 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
 def python_error(error: str) -> list[str]:
     """
     """
-    last_line = error.splitlines()[-1]
-    last_line = ' '.join(last_line.split())  # 無駄なスペースの除去
+    lines = error.splitlines()
+    result = []
+    _, last_line = len(lines), lines[-1]
     error_type, *description = last_line.split(":")
     if error_type == "ImportError":
-        return [unix_path_pattern.sub('__FILE__', last_line)]
+        error_text = unix_path_pattern.sub('__FILE__', last_line)
+        result.append(
+            error_text
+            # HighliteInfo(row_idx=row_idx, col_idxes=(1, len(last_line)), text=error_text, type=TextType.ERROR_MESSAGE)
+        )
 
     lines = [' '.join(line.split()) for line in error.splitlines()]
     stdlibs, extlibs = get_python_libs(lines)
