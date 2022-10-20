@@ -1,4 +1,14 @@
-import { Stack } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {
+  Alert,
+  Collapse,
+  Fade,
+  IconButton,
+  InputAdornment,
+  OutlinedInput,
+  Snackbar,
+  Stack,
+} from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -16,6 +26,7 @@ export default function Search() {
   const [error, setError] = React.useState('');
   const [analyzedError, setAnalyzedError] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const BACKEND_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
   const handleChangeOS = (event: SelectChangeEvent) => {
@@ -65,6 +76,19 @@ export default function Search() {
       .catch((error) => {
         console.error('通信に失敗しました', error);
       });
+  };
+
+  const handleClickCopy = () => {
+    navigator.clipboard.writeText(searchQuery);
+    setOpenSnackbar(true);
+  };
+
+  const handleMouseDownCopy = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
+
+  const handleCloseCopyAlert = () => {
+    setOpenSnackbar(false);
   };
 
   const buildSearchQuery = (queryErrorContents: []) => {
@@ -141,26 +165,49 @@ export default function Search() {
           </Button>
         </Stack>
       </Box>
-      <Typography variant='h6' component='h2' gutterBottom>
-        解析・生成結果
-      </Typography>
-      <Stack spacing={2} sx={{ mt: 2, mb: 8 }}>
-        <TextField
-          fullWidth
-          label='Sample Search Query'
-          inputProps={{ readOnly: true }}
-          value={searchQuery}
-        ></TextField>
-        <TextField
-          label='エラー文'
-          fullWidth
-          multiline
-          rows={10}
-          inputProps={{ readOnly: true }}
-          value={analyzedError}
-          defaultValue=' '
-        />
-      </Stack>
+      <Box>
+        <Typography variant='h6' component='h2' gutterBottom>
+          解析・生成結果
+        </Typography>
+        <Stack spacing={2} sx={{ mt: 2, mb: 8 }}>
+          <FormControl>
+            <InputLabel>検索文字列</InputLabel>
+            <OutlinedInput
+              inputProps={{ readOnly: true }}
+              value={searchQuery}
+              label='検索文字列'
+              endAdornment={
+                <InputAdornment position='end'>
+                  <Box sx={{ zIndex: 'modal', pr: 1 }}>
+                    <Fade in={openSnackbar}>
+                      <Alert icon={false} severity='success'>
+                        Copied
+                      </Alert>
+                    </Fade>
+                  </Box>
+                  <IconButton
+                    aria-label='Click to copy'
+                    onClick={handleClickCopy}
+                    onMouseDown={handleMouseDownCopy}
+                    onMouseOut={handleCloseCopyAlert}
+                    edge='end'
+                  >
+                    <ContentCopyIcon />
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          </FormControl>
+          <TextField
+            label='エラー文'
+            fullWidth
+            multiline
+            rows={10}
+            inputProps={{ readOnly: true }}
+            value={analyzedError}
+          />
+        </Stack>
+      </Box>
     </Container>
   );
 }
