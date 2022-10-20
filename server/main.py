@@ -82,27 +82,27 @@ def find_pyfile(line: str) -> str:
 def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
-    (['multiprocessing'], [])
+    ([HighliteInfo(row_idx=1, col_idxes=TextIndices(start=33, end=47), text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
         ' line 76, in subprocess_started'])
-    ([], ['uvicorn'])
+    ([], [HighliteInfo(row_idx=1, col_idxes=TextIndices(start=47, end=53), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
         'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
         'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
     ])
-    (['doctest'], [])
+    ([HighliteInfo(row_idx=2, col_idxes=TextIndices(start=33, end=39), text='doctest', type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
-    (['asyncio', 'multiprocessing'], ['uvicorn'])
+    ([HighliteInfo(row_idx=1, col_idxes=TextIndices(start=33, end=47), text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>), HighliteInfo(row_idx=3, col_idxes=TextIndices(start=33, end=39), text='asyncio', type=<TextType.LIBRARY_NAME: 2>)], [HighliteInfo(row_idx=3, col_idxes=TextIndices(start=47, end=53), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
     ])
-    ([], ['torch', 'uvicorn'])
+    ([], [HighliteInfo(row_idx=1, col_idxes=TextIndices(start=46, end=50), text='torch', type=<TextType.LIBRARY_NAME: 2>), HighliteInfo(row_idx=1, col_idxes=TextIndices(start=46, end=52), text='uvicorn', type=<TextType.LIBRARY_NAME: 2>)])
     """
 
     PYTHON3 = 'python3.'
