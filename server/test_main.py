@@ -29,7 +29,8 @@ def test_parse_error_text_passed() -> None:
                 '  File "/usr/local/python/lib/python3.5/socketserver.py", line 457, in server_bind\n'
                 "    self.socket.bind(self.server_address)\n"
                 "PermissionError: [Errno 13] Permission denied"
-            )
+            ),
+            "language": 'Python'
         }
     )
     assert response.status_code == 200

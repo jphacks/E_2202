@@ -30,6 +30,7 @@ unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
 class ErrorContents(BaseModel):
+    language: str
     error_text: str
 
 
@@ -110,16 +111,34 @@ def python_error(error: str) -> list[str]:
     return [*stdlibs, *extlibs, last_line]
 
 
+def another_language_error(error: str) -> list[str]:
+    lines = error.splitlines()
+    for line in lines:
+        if error_name_pattern.match(line):
+            result.append(line)
+        elif not_found_pattern.match(line):
+            result.append(line)
+
+    result = url_pattern.sub("__URL__", "\n".join(result)).split("\n")
+    result = unix_path_pattern.sub("__FILE__", "\n".join(result)).split("\n")
+    return result
+
+
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
     Extract lines containing the word 'Error'
     >>> import asyncio
-    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
+    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'", 'language': 'Python'}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
     ImportantErrorLines(result=["AttributeError: 'int' object has no attribute 'append'"])
     """
-    result = python_error(error_contents.error_text)
+    # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
+    if error_contents.language == 'Python':
+        result = python_error(error_contents.error_text)
+        return ImportantErrorLines(result=result)
+    
+    result = another_language_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
