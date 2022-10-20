@@ -1,4 +1,5 @@
 import re
+from typing import Callable
 from fastapi import (
     FastAPI,
 )
@@ -87,21 +88,25 @@ def get_python_libs(lines: list[str]) -> tuple[list[str], list[str]]:
     SITE_PACKAGES = 'site-packages'
     DIST_PACKAGES = 'dist-packages'
 
-    def extract_libname(path: str, target: str) -> str:
+    def _extract_libname(path: str, target: str) -> str:
         libname = path.split(target)[1].split('/')[1]
         return libname.replace('.py', '')
+
+    def extract_libnames(target: str, filter_: Callable[[str], bool], fnames: list[str]) -> set[str]:
+        paths = filter(filter_, fnames)
+        return set(map(lambda x: _extract_libname(x, target), paths))
 
     fname_in_stack = filter(lambda line: line.startswith('File "'), lines)
     fnames = list(map(find_pyfile, fname_in_stack))
     # 外部ライブラリを抽出
-    site_packages_paths = filter(lambda x: SITE_PACKAGES in x, fnames)
-    site_packages_lib_names = set(map(lambda x: extract_libname(x, SITE_PACKAGES), site_packages_paths))
-    dist_packages_paths = filter(lambda x: DIST_PACKAGES in x, fnames)
-    dist_packages_lib_names = set(map(lambda x: extract_libname(x, DIST_PACKAGES), dist_packages_paths))
+    site_packages = extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x, fnames)
+    dist_packages = extract_libnames(DIST_PACKAGES, lambda x: DIST_PACKAGES in x, fnames)
     # 標準ライブラリを抽出
-    stdlib_paths = filter(lambda x: (PYTHON3 in x) and (SITE_PACKAGES not in x) and (DIST_PACKAGES not in x), fnames)
-    stdlib_names = map(lambda x: extract_libname(x, PYTHON3), stdlib_paths)
-    return sorted(set(stdlib_names)), sorted(site_packages_lib_names | dist_packages_lib_names)
+    stdlibs = extract_libnames(
+        PYTHON3, lambda x: (PYTHON3 in x) and (SITE_PACKAGES not in x) and (DIST_PACKAGES not in x),
+        fnames
+    )
+    return sorted(stdlibs), sorted(site_packages | dist_packages)
 
 
 def python_error(error: str) -> list[str]:
