@@ -49,7 +49,7 @@ export default function Search() {
         const uniqueTexts = Array.from(new Set(texts).values());
         setQueryErrorContents(uniqueTexts);
         return router.push(
-          `https://google.com/search?q=${uniqueTexts}&lr=lang_ja`,
+          `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
         );
       });
   };
