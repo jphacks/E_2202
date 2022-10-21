@@ -43,9 +43,9 @@ export default function Search() {
       body: JSON.stringify({ language: language, error_text: error }),
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
         console.log(data);
-        setQueryErrorContents(
+        await setQueryErrorContents(
           data.result.map((x: { text: any }) => x.text) as [],
         );
         return router.push(
