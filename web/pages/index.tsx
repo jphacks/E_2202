@@ -7,7 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { Router  as redu, useRouter } from 'next/router';
+import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
 
 export default function Search() {
@@ -30,7 +30,7 @@ export default function Search() {
     setError(event.target.value as string);
   };
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleClick = () => {
     console.log(`${os}, ${language}, ${error}`);
@@ -48,7 +48,11 @@ export default function Search() {
         setQueryErrorContents(
           data.result.map((x: { text: any }) => x.text) as [],
         );
-        return router.push(`https://google.com/search?q=${data.result.map((x: { text: any }) => x.text).join('+')}&lr=lang_ja`)
+        return router.push(
+          `https://google.com/search?q=${data.result
+            .map((x: { text: any }) => x.text)
+            .join('+')}&lr=lang_ja`,
+        );
       });
   };
 
