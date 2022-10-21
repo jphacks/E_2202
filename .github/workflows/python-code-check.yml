@@ -9,7 +9,7 @@ on:
 
 defaults:
   run:
-    working_directory: server
+    working-directory: server
 
 jobs:
   build:
