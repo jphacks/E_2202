@@ -43,13 +43,12 @@ export default function Search() {
       body: JSON.stringify({ language: language, error_text: error }),
     })
       .then((res) => res.json())
-      .then(async (data) => {
+      .then((data) => {
         console.log(data);
-        await setQueryErrorContents(
-          data.result.map((x: { text: any }) => x.text) as [],
-        );
+        const errorQuery = data.result.map((x: { text: any }) => x.text) as [];
+        setQueryErrorContents(errorQuery);
         return router.push(
-          `https://google.com/search?q=${queryErrorContents}&lr=lang_ja`,
+          `https://google.com/search?q=${errorQuery}&lr=lang_ja`,
         );
       });
   };
