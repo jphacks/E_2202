@@ -42,7 +42,9 @@ export default function Search() {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setQueryErrorContents(data.result.map((x: { text: any }) => x.text) as []);
+        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const uniqueTexts = Array.from(new Set(texts).values());
+        setQueryErrorContents(uniqueTexts);
       });
   };
 
