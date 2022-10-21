@@ -19,6 +19,22 @@ test
 
 ## 開発技術
 ### 活用した技術
+フロントエンド
+- Next.js
+
+バックエンド
+- Python
+- FastAPI
+- Mypy
+- pytest
+- Flake8
+- Black
+
+その他
+- GitHub Actions
+- Docker
+- Heroku
+
 #### API・データ
 * 
 * 
