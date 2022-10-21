@@ -4,7 +4,12 @@ on:
   push:
     branches: [ feature/* ]
     paths:
-      - "**.py"
+      - "server/*"
+      - ".github/workflows/*"
+
+defaults:
+  run:
+    working-directory: server
 
 jobs:
   build:
