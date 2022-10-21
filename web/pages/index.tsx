@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
 
 export default function Search() {
@@ -29,6 +30,8 @@ export default function Search() {
     setError(event.target.value as string);
   };
 
+  const router = useRouter();
+
   const handleClick = () => {
     console.log(`${os}, ${language}, ${error}`);
     setQueryBuildFinished(true);
@@ -45,6 +48,9 @@ export default function Search() {
         const texts = data.result.map((x: { text: string }) => x.text) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         setQueryErrorContents(uniqueTexts);
+        return router.push(
+          `https://google.com/search?q=${uniqueTexts}&lr=lang_ja`,
+        );
       });
   };
 
