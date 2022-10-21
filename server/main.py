@@ -182,6 +182,7 @@ def python_error(error: str) -> list[HighlightTextInfo]:
 
 
 class ErrorContents(BaseModel):
+    language: str
     error_text: str
 
 
@@ -189,18 +190,39 @@ class ImportantErrorLines(BaseModel):
     result: list[HighlightTextInfo]
 
 
+def another_language_error(error: str) -> list[HighlightTextInfo]:
+    lines = error.rstrip('\n').splitlines()
+    result = []
+    for row_idx, line in enumerate(lines, start=1):
+        if error_name_pattern.search(line) is None \
+                and not_found_pattern.search(line) is None:
+            continue
+
+        res = url_pattern.sub("__URL__", line)
+        res = unix_path_pattern.sub("__FILE__", res)
+        result.append(HighlightTextInfo(row_idx, TextIndices(0, len(res)), res, TextType.ERROR_MESSAGE))
+    return result
+
+
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
     Extract lines containing the word 'Error'
     >>> import asyncio
-    >>> error_text_query = {'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'"}
+    >>> error_text_query = {\
+        'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'", \
+        'language': 'Python'}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
     ImportantErrorLines(result=[\
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
-    result = sorted(python_error(error_contents.error_text))
+    # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
+    if error_contents.language == 'Python':
+        result = sorted(python_error(error_contents.error_text))
+        return ImportantErrorLines(result=result)
+
+    result = another_language_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
