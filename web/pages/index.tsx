@@ -49,9 +49,7 @@ export default function Search() {
           data.result.map((x: { text: any }) => x.text) as [],
         );
         return router.push(
-          `https://google.com/search?q=${data.result
-            .map((x: { text: any }) => x.text)
-            .join('+')}&lr=lang_ja`,
+          `https://google.com/search?q=${queryErrorContents}&lr=lang_ja`,
         );
       });
   };
