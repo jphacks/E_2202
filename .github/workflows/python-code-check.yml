@@ -5,6 +5,7 @@ on:
     branches: [ feature/* ]
     paths:
       - "**.py"
+      - ".github/workflow"
 
 defaults:
   run:
