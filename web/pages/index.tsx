@@ -46,7 +46,7 @@ export default function Search() {
       .then((data) => {
         console.log(data);
         setQueryErrorContents(data.result as []);
-        return router.push(`https://google.com/search?q=${os}+${language}+${error}+-site:sejuku.net&lr=lang_ja`)
+        return router.push(`https://google.com/search?q=${data.result as []}+-site:sejuku.net&lr=lang_ja`)
       });
   };
 
