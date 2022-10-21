@@ -3,12 +3,43 @@ import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
 import * as React from 'react';
 
+// export default function CodeArea({ code, results }) {
 export default function CodeArea() {
+  const result = [
+    {
+      row_idx: 1,
+      col_idxes: { start: 3, end: 8 },
+    },
+    {
+      row_idx: 3,
+      col_idxes: { start: 1, end: 4 },
+    },
+  ];
+
   const [errorText, setErrorText] = React.useState('');
+  // const [highlightLines, sethighlightLines] = React.useState(Array<number>);
 
   const handleChangeError = (event: React.ChangeEvent<HTMLInputElement>) => {
     setErrorText(event.target.value as string);
     console.log(errorText, errorText.split('\n'));
+  };
+
+  const highlight = function (v: string, i: number): JSX.Element[] {
+    if (result.some((v) => v.row_idx === i + 1)) {
+      return result
+        .filter((vf) => vf.row_idx === i + 1)
+        .map((vm) => (
+          <>
+            <span>{v.slice(0, vm.col_idxes.start - 1)}</span>
+            <span style={{ backgroundColor: 'lemonchiffon' }}>
+              {v.slice(vm.col_idxes.start - 1, vm.col_idxes.end - 1)}
+            </span>
+            <span>{v.slice(vm.col_idxes.end - 1)}</span>
+          </>
+        ));
+    } else {
+      return [<span key={0}>{v}</span>];
+    }
   };
 
   return (
@@ -76,7 +107,7 @@ export default function CodeArea() {
                         whiteSpace: 'pre',
                       }}
                     >
-                      {v}
+                      {highlight(v, i)}
                     </td>
                   </tr>
                 ))}
