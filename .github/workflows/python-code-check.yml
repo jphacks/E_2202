@@ -6,6 +6,10 @@ on:
     paths:
       - "**.py"
 
+defaults:
+  run:
+    working_directory: server
+
 jobs:
   build:
     runs-on: ubuntu-22.04
