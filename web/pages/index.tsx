@@ -37,7 +37,7 @@ export default function Search() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ error_text: error }),
+      body: JSON.stringify({ language: language, error_text: error }),
     })
       .then((res) => res.json())
       .then((data) => {
