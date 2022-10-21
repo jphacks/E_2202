@@ -45,10 +45,11 @@ export default function Search() {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        const errorQuery = data.result.map((x: { text: any }) => x.text) as [];
-        setQueryErrorContents(errorQuery);
+        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const uniqueTexts = Array.from(new Set(texts).values());
+        setQueryErrorContents(uniqueTexts);
         return router.push(
-          `https://google.com/search?q=${errorQuery}&lr=lang_ja`,
+          `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
         );
       });
   };
