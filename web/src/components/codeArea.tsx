@@ -9,6 +9,8 @@ export interface CodeAreaProps {
       start: number;
       end: number;
     };
+    text: string;
+    type: number;
   }>;
 }
 
@@ -19,11 +21,13 @@ export default function CodeArea({ errorText, highlights }: CodeAreaProps) {
         .filter((vf) => vf.row_idx === i + 1)
         .map((vm) => (
           <>
-            <span>{v.slice(0, vm.col_idxes.start - 1)}</span>
-            <span style={{ backgroundColor: 'lemonchiffon' }}>
-              {v.slice(vm.col_idxes.start - 1, vm.col_idxes.end - 1)}
+            <span>{v.slice(0, vm.col_idxes.start)}</span>
+            <span
+              style={{ backgroundColor: vm.type === 1 ? '#F5B7B1' : '#F9E79F' }}
+            >
+              {v.slice(vm.col_idxes.start, vm.col_idxes.end)}
             </span>
-            <span>{v.slice(vm.col_idxes.end - 1)}</span>
+            <span>{v.slice(vm.col_idxes.end)}</span>
           </>
         ));
     } else {
@@ -37,7 +41,6 @@ export default function CodeArea({ errorText, highlights }: CodeAreaProps) {
         <div
           style={{
             width: '100%',
-            margin: '8px',
             padding: 0,
             paddingTop: 4,
             paddingBottom: 4,

@@ -18,12 +18,13 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
+import CodeArea from '../src/components/codeArea';
 
 export default function Search() {
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [error, setError] = React.useState('');
-  const [analyzedError, setAnalyzedError] = React.useState('');
+  const [highlights, setHighlights] = React.useState([]);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const BACKEND_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
@@ -51,11 +52,11 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        console.log(data.result);
+        setHighlights(data.result);
         const texts = data.result.map((x: { text: string }) => x.text) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         setSearchQuery(buildSearchQuery(uniqueTexts as []));
-        setAnalyzedError(error);
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
@@ -207,14 +208,7 @@ export default function Search() {
               }
             />
           </FormControl>
-          <TextField
-            label='エラー文'
-            fullWidth
-            multiline
-            rows={10}
-            inputProps={{ readOnly: true }}
-            value={analyzedError}
-          />
+          <CodeArea errorText={error} highlights={highlights} />
         </Stack>
       </Box>
     </Container>
