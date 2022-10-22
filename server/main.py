@@ -170,7 +170,7 @@ def python_error(error: str) -> list[HighlightTextInfo]:
     row_idx, last_line = len(lines), lines[-1]
     # URL は検索クエリに使えないので除去するが，FILE情報の位置はそのまま保持しておく
     error_text = url_pattern.sub('', last_line)
-    error_text = unix_path_pattern.sub('__FILE__', error_text)
+    error_text = unix_path_pattern.sub('', error_text)
 
     stdlibs, extlibs = get_python_libs(lines)
     last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
