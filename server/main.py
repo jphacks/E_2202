@@ -34,7 +34,7 @@ not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
 )
-unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
+unix_path_pattern = re.compile(r"[\"\']?(\.)?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
 class TextType(Enum):
@@ -167,17 +167,13 @@ def python_error(error: str) -> list[HighlightTextInfo]:
     """
     """
     lines = error.rstrip('\n').splitlines()
-    result = []
     row_idx, last_line = len(lines), lines[-1]
-    error_type, *description = last_line.split(":")
-    if error_type == "ImportError":
-        error_text = unix_path_pattern.sub('__FILE__', last_line)
-        result.append(
-            HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
-        )
+    # URL は検索クエリに使えないので除去するが，FILE情報の位置はそのまま保持しておく
+    error_text = url_pattern.sub('', last_line)
+    error_text = unix_path_pattern.sub('', error_text)
 
-    stdlibs, extlibs = get_python_libs(error.splitlines())
-    last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), last_line, TextType.ERROR_MESSAGE)
+    stdlibs, extlibs = get_python_libs(lines)
+    last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
     return [*stdlibs, *extlibs, last_message]
 
 
