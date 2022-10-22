@@ -8,15 +8,43 @@ client = TestClient(app)
 def test_parse_error_text_passed() -> None:
     response = client.post(
         "error_parse",
-        json={"error_text": "node:internal/modules/cjs/loader:988\n  \
-            throw err;\n  ^\n\nError: Cannot find module '/usr/src/app/web/yarn.js'\n    \
-            at Function.Module._resolveFilename (node:internal/modules/cjs/loader:985:15)\n    \
-            at Function.Module._load (node:internal/modules/cjs/loader:833:27)\n    \
-            at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:81:12)\n    \
-            at node:internal/main/run_main_module:22:47 {\n  code: 'MODULE_NOT_FOUND',\n  \
-            requireStack: []\n}"}
+        json={
+            "error_text": (
+                ' File "./public_html/d.py", line 13, in <module>\n'
+                "    app.run(debug=False, host='0.0.0.0', port=80)\n"
+                '  File "/usr/local/python/lib/python3.5/site-packages/flask/app.py", line 843, in run\n'
+                "    run_simple(host, port, self, **options)\n"
+                '  File "/usr/local/python/lib/python3.5/site-packages/werkzeug/serving.py", line 694, in run_simple\n'
+                "    inner()\n"
+                '  File "/usr/local/python/lib/python3.5/site-packages/werkzeug/serving.py", line 656, in inner\n'
+                "    fd=fd)\n"
+                '  File "/usr/local/python/lib/python3.5/site-packages/werkzeug/serving.py", line 550, in make_server\n'
+                "    passthrough_errors, ssl_context, fd=fd)\n"
+                '  File "/usr/local/python/lib/python3.5/site-packages/werkzeug/serving.py", line 464, in __init__\n'
+                "    HTTPServer.__init__(self, (host, int(port)), handler)\n"
+                '  File "/usr/local/python/lib/python3.5/socketserver.py", line 443, in __init__\n'
+                "    self.server_bind()\n"
+                '  File "/usr/local/python/lib/python3.5/http/server.py", line 138, in server_bind\n'
+                "    socketserver.TCPServer.server_bind(self)\n"
+                '  File "/usr/local/python/lib/python3.5/socketserver.py", line 457, in server_bind\n'
+                "    self.socket.bind(self.server_address)\n"
+                "PermissionError: [Errno 13] Permission denied"
+            ),
+            "language": 'Python'
+        }
     )
     assert response.status_code == 200
     assert response.json() == {
-        'result': ['Error: Cannot find module __FILE__', "  code: 'MODULE_NOT_FOUND',"]
-        }
+        'result': [
+            {'row_idx':  3, 'col_idxes': {'start': 54, 'end': 59}, 'text': 'flask',        'type': 2},
+            {'row_idx':  5, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx':  7, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx':  9, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx': 11, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
+            {'row_idx': 13, 'col_idxes': {'start': 40, 'end': 52}, 'text': 'socketserver', 'type': 2},
+            {'row_idx': 15, 'col_idxes': {'start': 40, 'end': 44}, 'text': 'http',         'type': 2},
+            {'row_idx': 17, 'col_idxes': {'start': 40, 'end': 52}, 'text': 'socketserver', 'type': 2},
+            {'row_idx': 19, 'col_idxes': {'start': 0, 'end': 45},
+             'text': 'PermissionError: [Errno 13] Permission denied', 'type': 1},
+        ]
+    }

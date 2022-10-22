@@ -4,7 +4,12 @@ on:
   push:
     branches: [ feature/* ]
     paths:
-      - "**.py"
+      - "server/*"
+      - ".github/workflows/*"
+
+defaults:
+  run:
+    working-directory: server
 
 jobs:
   build:
@@ -27,5 +32,3 @@ jobs:
       run: mypy --strict .
     - name: Test with Pytest
       run: pytest . -v
-
-        
