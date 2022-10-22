@@ -1,6 +1,5 @@
 # YouQuery (Error × tech)
-
-[![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2022/08/JPHACKS2022_ogp.jpg)](https://www.youtube.com/watch?v=LUPQFB4QyVo)
+<img width="1382" alt="app_top" src="https://user-images.githubusercontent.com/33239413/197314045-adc98aee-b952-4d98-84c6-0c5a5f2c3857.png">
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）
@@ -30,16 +29,23 @@
 ### 活用した技術
 
 #### 言語・フレームワーク・ライブラリ・モジュール
-* TypeScript
-* Python
-* Next.js
-* Fast API
+- フロントエンド
+  - TypeScript
+  - Next.js
+ 
+- バックエンド
+  - Python
+  - FastAPI
+  - doctest
+  - Pytest
+  - mypy
+  - Flake8
+  - black
+  
+- インフラ
+  - Heroku
+  - GitHub Actions
 
 ### 独自技術
 #### ハッカソンで開発した独自機能・技術
-* 独自で開発したものの内容をこちらに記載してください
-* 特に力を入れた部分をファイルリンク、またはcommit_idを記載してください。
 
-#### 製品に取り入れた研究内容（データ・ソフトウェアなど）（※アカデミック部門の場合のみ提出必須）
-* 
-* 
