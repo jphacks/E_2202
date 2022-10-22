@@ -24,6 +24,7 @@ export default function Search() {
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [error, setError] = React.useState('');
+  const [analizedError, setAnalizedError] = React.useState('');
   const [highlights, setHighlights] = React.useState([]);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
@@ -39,6 +40,9 @@ export default function Search() {
 
   const handleChangeError = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(event.target.value as string);
+    setSearchQuery('');
+    setAnalizedError('');
+    setHighlights([]);
   };
 
   const handleClickAnalyze = () => {
@@ -52,11 +56,12 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data.result);
+        setAnalizedError(error);
         setHighlights(data.result);
         const texts = data.result.map((x: { text: string }) => x.text) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         setSearchQuery(buildSearchQuery(uniqueTexts as []));
+        return router.push('#result-content');
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
@@ -76,7 +81,6 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         const texts = data.result.map((x: { text: string }) => x.text) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         return router.push(
@@ -175,8 +179,13 @@ export default function Search() {
           </Button>
         </Stack>
       </Box>
-      <Box>
-        <Typography variant='h6' component='h2' gutterBottom>
+      <Box sx={{ mb: 10 }}>
+        <Typography
+          id='result-content'
+          variant='h6'
+          component='h2'
+          gutterBottom
+        >
           解析・生成結果
         </Typography>
         <Stack spacing={2} sx={{ mt: 2, mb: 8 }}>
@@ -208,7 +217,7 @@ export default function Search() {
               }
             />
           </FormControl>
-          <CodeArea errorText={error} highlights={highlights} />
+          <CodeArea errorText={analizedError} highlights={highlights} />
         </Stack>
       </Box>
     </Container>
