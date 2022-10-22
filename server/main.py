@@ -22,6 +22,7 @@ app.add_middleware(
     allow_origins=[
         "https://yukusi.herokuapp.com",
         "https://yukusi-dev.herokuapp.com",
+        "https://youquery-jphacks.herokuapp.com",
         "http://localhost:3000",
     ],
     allow_credentials=True,
