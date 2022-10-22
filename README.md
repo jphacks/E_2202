@@ -1,3 +1,6 @@
+![backend ci workflow](https://github.com/jphacks/E_2202/actions/workflows/python-code-check.yml/badge.svg) 
+![frontend workflow](https://github.com/jphacks/E_2202/actions/workflows/heroku-dev-frontend.yml/badge.svg) 
+
 # YouQuery (Error × tech)
 [!['YouQueryデモ動画'](https://user-images.githubusercontent.com/33239413/197319605-4e4b7068-4324-439e-9a37-ef9bac0661ad.png)](https://youtu.be/hggn2hezdVw)
 
