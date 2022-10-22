@@ -59,7 +59,9 @@ export default function Search() {
       .then((data) => {
         setAnalizedError(error);
         setHighlights(data.result);
-        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const texts = data.result.map((x: { text: string; type: number }) =>
+          x.type == 1 ? x.text : '',
+        ) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         setSearchQuery(buildSearchQuery(uniqueTexts as []));
         return router.push('#result-content');
@@ -82,7 +84,9 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const texts = data.result.map((x: { text: string; type: number }) =>
+          x.type == 1 ? x.text : '',
+        ) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
         return router.push(
           `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
@@ -140,7 +144,7 @@ export default function Search() {
             onChange={handleChangeOS}
           >
             <MenuItem value={'macOS'}>macOS</MenuItem>
-            <MenuItem value={'Windows'}>Windows</MenuItem>
+            {/* <MenuItem value={'Windows'}>Windows</MenuItem> */}
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ m: 1 }}>
@@ -153,7 +157,7 @@ export default function Search() {
             onChange={handleChangeLanguage}
           >
             <MenuItem value={'Python'}>Python</MenuItem>
-            <MenuItem value={'JavaScript'}>JavaScript</MenuItem>
+            <MenuItem value={'Others'}>Others</MenuItem>
           </Select>
         </FormControl>
         <TextField
