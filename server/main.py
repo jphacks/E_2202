@@ -34,7 +34,7 @@ not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
 )
-unix_path_pattern = re.compile(r"[\"\']?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
+unix_path_pattern = re.compile(r"[\"\']?(\.)?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
 class TextType(Enum):
