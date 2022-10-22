@@ -3,7 +3,7 @@ name: Heroku dev backend deploy
 on:
   push:
     branches:
-      - 'feature/#39*' # dev環境にデプロイしたい際はこちらのブランチ番号を変更してください
+      - 'feature/#45*' # dev環境にデプロイしたい際はこちらのブランチ番号を変更してください
 
 jobs:
   build:

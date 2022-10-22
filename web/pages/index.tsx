@@ -16,6 +16,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
 
 export default function Search() {
@@ -46,17 +47,22 @@ export default function Search() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ error_text: error }),
+      body: JSON.stringify({ language: language, error_text: error }),
     })
       .then((res) => res.json())
       .then((data) => {
-        setSearchQuery(buildSearchQuery(data.result as []));
+        console.log(data);
+        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const uniqueTexts = Array.from(new Set(texts).values());
+        setSearchQuery(buildSearchQuery(uniqueTexts as []));
         setAnalyzedError(error);
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
       });
   };
+
+  const router = useRouter();
 
   const handleClickSearch = () => {
     console.log(`${os}, ${language}, ${error}`);
@@ -65,11 +71,16 @@ export default function Search() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ error_text: error }),
+      body: JSON.stringify({ language: language, error_text: error }),
     })
       .then((res) => res.json())
       .then((data) => {
-        setSearchQuery(buildSearchQuery(data.result as []));
+        console.log(data);
+        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const uniqueTexts = Array.from(new Set(texts).values());
+        return router.push(
+          `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
+        );
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
