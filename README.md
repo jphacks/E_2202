@@ -1,5 +1,5 @@
 # YouQuery (Error × tech)
-<img width="1382" alt="app_top" src="https://user-images.githubusercontent.com/33239413/197314045-adc98aee-b952-4d98-84c6-0c5a5f2c3857.png">
+[!['YouQueryデモ動画'](https://user-images.githubusercontent.com/33239413/197319605-4e4b7068-4324-439e-9a37-ef9bac0661ad.png)](https://youtu.be/hggn2hezdVw)
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）
