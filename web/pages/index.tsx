@@ -1,3 +1,12 @@
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {
+  Alert,
+  Fade,
+  IconButton,
+  InputAdornment,
+  OutlinedInput,
+  Stack,
+} from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -9,13 +18,16 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
+import CodeArea from '../src/components/codeArea';
 
 export default function Search() {
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [error, setError] = React.useState('');
-  const [queryErrorContents, setQueryErrorContents] = React.useState([]);
-  const [isQueryBuildFinished, setQueryBuildFinished] = React.useState(false);
+  const [analizedError, setAnalizedError] = React.useState('');
+  const [highlights, setHighlights] = React.useState([]);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const BACKEND_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
   const handleChangeOS = (event: SelectChangeEvent) => {
@@ -28,13 +40,13 @@ export default function Search() {
 
   const handleChangeError = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(event.target.value as string);
+    setSearchQuery('');
+    setAnalizedError('');
+    setHighlights([]);
   };
 
-  const router = useRouter();
-
-  const handleClick = () => {
+  const handleClickAnalyze = () => {
     console.log(`${os}, ${language}, ${error}`);
-    setQueryBuildFinished(true);
     fetch(`${BACKEND_ENDPOINT}/error_parse`, {
       method: 'POST',
       headers: {
@@ -44,14 +56,57 @@ export default function Search() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        setAnalizedError(error);
+        setHighlights(data.result);
         const texts = data.result.map((x: { text: string }) => x.text) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
-        setQueryErrorContents(uniqueTexts);
+        setSearchQuery(buildSearchQuery(uniqueTexts as []));
+        return router.push('#result-content');
+      })
+      .catch((error) => {
+        console.error('通信に失敗しました', error);
+      });
+  };
+
+  const router = useRouter();
+
+  const handleClickSearch = () => {
+    console.log(`${os}, ${language}, ${error}`);
+    fetch(`${BACKEND_ENDPOINT}/error_parse`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ language: language, error_text: error }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const texts = data.result.map((x: { text: string }) => x.text) as [];
+        const uniqueTexts = Array.from(new Set(texts).values());
         return router.push(
           `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
         );
+      })
+      .catch((error) => {
+        console.error('通信に失敗しました', error);
       });
+  };
+
+  const handleClickCopy = () => {
+    navigator.clipboard.writeText(searchQuery);
+    setOpenSnackbar(true);
+  };
+
+  const handleMouseDownCopy = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
+
+  const handleCloseCopyAlert = () => {
+    setOpenSnackbar(false);
+  };
+
+  const buildSearchQuery = (queryErrorContents: []) => {
+    return [...queryErrorContents, 'in', language, 'on', os].join(' ');
   };
 
   return (
@@ -59,23 +114,18 @@ export default function Search() {
       <Box
         sx={{
           my: 4,
+          pb: 4,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          borderBottom: 1,
+          borderColor: 'grey.500',
         }}
       >
-        <Typography variant='h1' component='h1' gutterBottom>
+        <Typography variant='h1' gutterBottom>
           Search
         </Typography>
-        {isQueryBuildFinished && (
-          <TextField
-            fullWidth
-            label='Sample Search Query'
-            inputProps={{ readOnly: true }}
-            value={[...queryErrorContents, 'in', language, 'on', os].join(' ')}
-          ></TextField>
-        )}
         <FormControl fullWidth sx={{ m: 1 }}>
           <InputLabel id='demo-simple-select-label'>OS</InputLabel>
           <Select
@@ -112,23 +162,63 @@ export default function Search() {
           value={error}
           onChange={handleChangeError}
         />
-        <Box
-          sx={{
-            my: 1,
-            display: 'flex',
-            flexDirection: 'flex-end',
-            justifyContent: 'flex-end',
-            alignItems: 'flex-end',
-          }}
-        >
+        <Stack direction='row' spacing={8} sx={{ m: 4 }}>
           <Button
             variant='contained'
-            sx={{ minWidth: 200 }}
-            onClick={handleClick}
+            sx={{ width: 200, height: 50 }}
+            onClick={handleClickAnalyze}
+          >
+            解析・生成
+          </Button>
+          <Button
+            variant='contained'
+            sx={{ width: 200, height: 50 }}
+            onClick={handleClickSearch}
           >
             検索
           </Button>
-        </Box>
+        </Stack>
+      </Box>
+      <Box sx={{ mb: 10 }}>
+        <Typography
+          id='result-content'
+          variant='h6'
+          component='h2'
+          gutterBottom
+        >
+          解析・生成結果
+        </Typography>
+        <Stack spacing={2} sx={{ mt: 2, mb: 8 }}>
+          <FormControl>
+            <InputLabel>検索文字列</InputLabel>
+            <OutlinedInput
+              inputProps={{ readOnly: true }}
+              value={searchQuery}
+              label='検索文字列'
+              endAdornment={
+                <InputAdornment position='end'>
+                  <Box sx={{ zIndex: 'modal', pr: 1 }}>
+                    <Fade in={openSnackbar}>
+                      <Alert icon={false} severity='success'>
+                        Copied
+                      </Alert>
+                    </Fade>
+                  </Box>
+                  <IconButton
+                    aria-label='Click to copy'
+                    onClick={handleClickCopy}
+                    onMouseDown={handleMouseDownCopy}
+                    onMouseOut={handleCloseCopyAlert}
+                    edge='end'
+                  >
+                    <ContentCopyIcon />
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          </FormControl>
+          <CodeArea errorText={analizedError} highlights={highlights} />
+        </Stack>
       </Box>
     </Container>
   );
