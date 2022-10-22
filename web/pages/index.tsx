@@ -16,6 +16,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Head from 'next/head';
 import { Router as redu, useRouter } from 'next/router';
 import * as React from 'react';
 import CodeArea from '../src/components/codeArea';
@@ -111,6 +112,9 @@ export default function Search() {
 
   return (
     <Container maxWidth='lg'>
+      <Head>
+        <title>YouQuery</title>
+      </Head>
       <Box
         sx={{
           my: 4,
@@ -123,8 +127,8 @@ export default function Search() {
           borderColor: 'grey.500',
         }}
       >
-        <Typography variant='h1' gutterBottom>
-          Search
+        <Typography variant='h1' component='h1' gutterBottom>
+          YouQuery
         </Typography>
         <FormControl fullWidth sx={{ m: 1 }}>
           <InputLabel id='demo-simple-select-label'>OS</InputLabel>
