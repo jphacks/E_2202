@@ -15,6 +15,7 @@ from pydantic.dataclasses import dataclass
 class TextType(Enum):
     ERROR_MESSAGE = auto()
     LIBRARY_NAME = auto()
+    ERROR_OCCURS_ROW_IN_CODE = auto()
 
 
 class ORMConfig:

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from parser import (
     python,
+    java,
     other,
 )
 from container_class import (
@@ -43,6 +44,10 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
     # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
     if error_contents.language == 'Python':
         result = sorted(python.error_parser(error_contents.error_text))
+        return ImportantErrorLines(result=result)
+    
+    elif error_contents.language == 'Java':
+        result = java.error_parser(error_contents.error_text)
         return ImportantErrorLines(result=result)
 
     result = other.error_parser(error_contents.error_text)
