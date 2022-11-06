@@ -262,14 +262,21 @@ export default function Search() {
                   component='h2'
                   gutterBottom
                 >
-                  検索クエリ案
+                  検索クエリ候補
                 </Typography>
                 <FormControl fullWidth>
-                  <InputLabel>検索文字列</InputLabel>
+                  <FormHelperText
+                    component='div'
+                    sx={{
+                      m: 0,
+                      fontSize: '1rem',
+                    }}
+                  >
+                    検索文字列
+                  </FormHelperText>
                   <OutlinedInput
                     inputProps={{ readOnly: true }}
                     value={searchQuery}
-                    label='検索文字列'
                     sx={{
                       bgcolor: 'white',
                     }}
