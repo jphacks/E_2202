@@ -90,9 +90,7 @@ export default function Search() {
           x.type == 1 ? x.text : '',
         ) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
-        return router.push(
-          `https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`,
-        );
+        open(`https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`);
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
