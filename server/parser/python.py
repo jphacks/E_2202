@@ -82,12 +82,8 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"',\
         'AssertionError: Batch size (64) does not match number of examples (18)"'\
     ])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=8, end=14),\
- text='PPO.py', type=<TextType.YOUR_OWN_FILE_NAME: 3>),\
- HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=17, end=25),\
- text='line 275', type=<TextType.LINE_NUMBER: 4>),\
- HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=4, end=70),\
- text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 0>)], [], \
+    ([HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=8, end=14),\
+ text='PPO.py', type=<TextType.USERS_FILE_NAME: 3>)], [],\
  [HighlightTextInfo(row_idx=4, col_idxes=TextIndices(start=47, end=50),\
  text='trl', type=<TextType.LIBRARY_NAME: 2>)])
     """
@@ -130,7 +126,13 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         PYTHON3, lambda x: (PYTHON3 in x[1][0]) and (SITE_PACKAGES not in x[1][0]) and (DIST_PACKAGES not in x[1][0]),
         fnames
     ))
-    return [], sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
+    # それ以外のファイル名を抽出（ユーザが書いたスクリプトを想定している）
+    user_scripts = []
+    for row_idx, (path, indices) in fnames:
+        if (PYTHON3 in path) or (SITE_PACKAGES in path) or (DIST_PACKAGES in path):
+            continue
+        user_scripts.append(HighlightTextInfo(row_idx, indices, path, TextType.USERS_FILE_NAME))
+    return sorted(user_scripts), sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
 
 
 def error_parser(error: str) -> list[HighlightTextInfo]:
