@@ -31,4 +31,4 @@ jobs:
     - name: Code Check with mypy
       run: mypy --strict .
     - name: Test with Pytest
-      run: pytest . -v
+      run: pytest . -v --doctest-modules
