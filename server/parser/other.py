@@ -15,7 +15,7 @@ url_pattern = re.compile(
 unix_path_pattern = re.compile(r"[\"\']?(\.)?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 
 
-def another_language_error(error: str) -> list[HighlightTextInfo]:
+def error_parser(error: str) -> list[HighlightTextInfo]:
     lines = error.rstrip('\n').splitlines()
     result = []
     for row_idx, line in enumerate(lines, start=1):

@@ -42,10 +42,10 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
     """
     # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
     if error_contents.language == 'Python':
-        result = sorted(python.python_error(error_contents.error_text))
+        result = sorted(python.error_parser(error_contents.error_text))
         return ImportantErrorLines(result=result)
 
-    result = other.another_language_error(error_contents.error_text)
+    result = other.error_parser(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
