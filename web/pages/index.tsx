@@ -53,7 +53,6 @@ export default function Search() {
 
   const handleClickAnalyze = () => {
     if (error.length > 0) {
-      console.log(`${os}, ${language}, ${error}`);
       fetch(`${BACKEND_ENDPOINT}/error_parse`, {
         method: 'POST',
         headers: {
@@ -82,7 +81,6 @@ export default function Search() {
   const router = useRouter();
 
   const handleClickSearch = () => {
-    console.log(`${os}, ${language}, ${error}`);
     fetch(`${BACKEND_ENDPOINT}/error_parse`, {
       method: 'POST',
       headers: {
