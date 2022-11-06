@@ -1,25 +1,27 @@
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
   Alert,
+  Box,
+  Button,
+  Container,
   Fade,
+  FormControl,
+  FormHelperText,
+  MenuItem,
   IconButton,
   InputAdornment,
+  InputLabel,
   OutlinedInput,
+  Select,
   Stack,
+  Typography,
+  SelectChangeEvent,
 } from '@mui/material';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import Head from 'next/head';
-import { Router as redu, useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import * as React from 'react';
 import CodeArea from '../src/components/codeArea';
+import Header from '../src/components/header';
 
 export default function Search() {
   const [os, setOS] = React.useState('');
@@ -115,119 +117,197 @@ export default function Search() {
   };
 
   return (
-    <Container maxWidth='lg'>
+    <Box>
       <Head>
         <title>YouQuery</title>
       </Head>
-      <Box
-        sx={{
-          my: 4,
-          pb: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderBottom: 1,
-          borderColor: 'grey.500',
-        }}
-      >
-        <Typography variant='h1' component='h1' gutterBottom>
-          YouQuery
-        </Typography>
-        <FormControl fullWidth sx={{ m: 1 }}>
-          <InputLabel id='demo-simple-select-label'>OS</InputLabel>
-          <Select
-            labelId='demo-simple-select-label'
-            id='demo-simple-select'
-            value={os}
-            label='OS'
-            onChange={handleChangeOS}
+
+      <Header />
+
+      <Box sx={{ py: 4, bgcolor: 'grey.100' }}>
+        <Container maxWidth='lg'>
+          <Stack
+            direction='column'
+            justifyContent='center'
+            alignItems='center'
+            spacing={2}
           >
-            <MenuItem value={'macOS'}>macOS</MenuItem>
-            {/* <MenuItem value={'Windows'}>Windows</MenuItem> */}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth sx={{ m: 1 }}>
-          <InputLabel id='demo-simple-select-label'>言語</InputLabel>
-          <Select
-            labelId='demo-simple-select-label'
-            id='demo-simple-select'
-            value={language}
-            label='言語'
-            onChange={handleChangeLanguage}
+            <FormControl fullWidth>
+              <FormHelperText
+                component='div'
+                sx={{
+                  m: 0,
+                  fontSize: '1rem',
+                }}
+              >
+                エラー文
+              </FormHelperText>
+              <OutlinedInput
+                placeholder='解決したいエラー文を入力してくだい。'
+                id='errorText'
+                value={error}
+                onChange={handleChangeError}
+                multiline
+                rows={10}
+                sx={{
+                  bgcolor: 'white',
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <FormHelperText
+                component='div'
+                sx={{
+                  m: 0,
+                  fontSize: '1rem',
+                }}
+              >
+                言語
+              </FormHelperText>
+              <Select
+                id='language'
+                value={language}
+                onChange={handleChangeLanguage}
+                displayEmpty
+                sx={{
+                  bgcolor: 'white',
+                }}
+              >
+                <MenuItem value={''}>指定なし</MenuItem>
+                <MenuItem value={'Python'}>Python</MenuItem>
+                <MenuItem value={'Others'}>Others</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <FormHelperText
+                component='div'
+                sx={{
+                  m: 0,
+                  fontSize: '1rem',
+                }}
+              >
+                OS
+              </FormHelperText>
+              <Select
+                id='os'
+                value={os}
+                onChange={handleChangeOS}
+                displayEmpty
+                sx={{
+                  bgcolor: 'white',
+                }}
+              >
+                <MenuItem value={''}>指定なし</MenuItem>
+                <MenuItem value={'macOS'}>macOS</MenuItem>
+                {/* <MenuItem value={'Windows'}>Windows</MenuItem> */}
+              </Select>
+            </FormControl>
+          </Stack>
+          <Stack
+            direction='row'
+            justifyContent='center'
+            alignItems='center'
+            sx={{ py: 4 }}
           >
-            <MenuItem value={'Python'}>Python</MenuItem>
-            <MenuItem value={'Others'}>Others</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          id='outlined-multiline-static'
-          label='エラー文'
-          sx={{ m: 1 }}
-          fullWidth
-          multiline
-          rows={10}
-          value={error}
-          onChange={handleChangeError}
-        />
-        <Stack direction='row' spacing={8} sx={{ m: 4 }}>
-          <Button
-            variant='contained'
-            sx={{ width: 200, height: 50 }}
-            onClick={handleClickAnalyze}
-          >
-            解析・生成
-          </Button>
-          <Button
-            variant='contained'
-            sx={{ width: 200, height: 50 }}
-            onClick={handleClickSearch}
-          >
-            検索
-          </Button>
-        </Stack>
+            <Button
+              variant='contained'
+              sx={{
+                width: 200,
+                height: 50,
+              }}
+              onClick={handleClickAnalyze}
+            >
+              解析
+            </Button>
+          </Stack>
+        </Container>
       </Box>
-      <Box sx={{ mb: 10 }}>
-        <Typography
-          id='result-content'
-          variant='h6'
-          component='h2'
-          gutterBottom
-        >
-          解析・生成結果
-        </Typography>
-        <Stack spacing={2} sx={{ mt: 2, mb: 8 }}>
-          <FormControl>
-            <InputLabel>検索文字列</InputLabel>
-            <OutlinedInput
-              inputProps={{ readOnly: true }}
-              value={searchQuery}
-              label='検索文字列'
-              endAdornment={
-                <InputAdornment position='end'>
-                  <Box sx={{ zIndex: 'modal', pr: 1 }}>
-                    <Fade in={openSnackbar}>
-                      <Alert icon={false} severity='success'>
-                        Copied
-                      </Alert>
-                    </Fade>
-                  </Box>
-                  <IconButton
-                    aria-label='Click to copy'
-                    onClick={handleClickCopy}
-                    onMouseDown={handleMouseDownCopy}
-                    onMouseOut={handleCloseCopyAlert}
-                    edge='end'
-                  >
-                    <ContentCopyIcon />
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </FormControl>
-          <CodeArea errorText={analizedError} highlights={highlights} />
-        </Stack>
+
+      <Box sx={{ pt: 4, pb: 8, bgcolor: 'white' }}>
+        <Container maxWidth='lg'>
+          <Stack
+            direction='column'
+            justifyContent='center'
+            alignItems='center'
+            spacing={2}
+          >
+            <Typography
+              id='result-content'
+              variant='h6'
+              component='h2'
+              gutterBottom
+            >
+              解析結果
+            </Typography>
+            <CodeArea errorText={analizedError} highlights={highlights} />
+          </Stack>
+        </Container>
       </Box>
-    </Container>
+
+      <Box sx={{ py: 4, bgcolor: 'grey.100' }}>
+        <Container maxWidth='lg'>
+          <Stack
+            direction='column'
+            justifyContent='center'
+            alignItems='center'
+            spacing={2}
+          >
+            <Typography
+              id='result-content'
+              variant='h6'
+              component='h2'
+              gutterBottom
+            >
+              検索クエリ案
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel>検索文字列</InputLabel>
+              <OutlinedInput
+                inputProps={{ readOnly: true }}
+                value={searchQuery}
+                label='検索文字列'
+                sx={{
+                  bgcolor: 'white',
+                }}
+                endAdornment={
+                  <InputAdornment position='end'>
+                    <Box sx={{ zIndex: 'modal', pr: 1 }}>
+                      <Fade in={openSnackbar}>
+                        <Alert icon={false} severity='success'>
+                          Copied
+                        </Alert>
+                      </Fade>
+                    </Box>
+                    <IconButton
+                      aria-label='Click to copy'
+                      onClick={handleClickCopy}
+                      onMouseDown={handleMouseDownCopy}
+                      onMouseOut={handleCloseCopyAlert}
+                      edge='end'
+                    >
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+          </Stack>
+          <Stack
+            direction='row'
+            justifyContent='center'
+            alignItems='center'
+            sx={{ py: 4 }}
+          >
+            <Button
+              variant='contained'
+              sx={{ width: 200, height: 50 }}
+              onClick={handleClickSearch}
+            >
+              検索
+            </Button>
+          </Stack>
+        </Container>
+      </Box>
+    </Box>
   );
 }
