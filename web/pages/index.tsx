@@ -10,7 +10,6 @@ import {
   MenuItem,
   IconButton,
   InputAdornment,
-  InputLabel,
   OutlinedInput,
   Select,
   Stack,
