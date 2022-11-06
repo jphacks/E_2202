@@ -39,7 +39,8 @@ def find_pyfile(line: str) -> Optional[tuple[str, TextIndices]]:
     return None
 
 
-def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[HighlightTextInfo], list[HighlightTextInfo]]:
+def get_python_libs(lines: list[str]) \
+        -> tuple[list[HighlightTextInfo], list[HighlightTextInfo], list[HighlightTextInfo]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
     ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
@@ -116,7 +117,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         return HighlightTextInfo(row_idx, indices, text, TextType.LIBRARY_NAME)
 
     fname_in_stack = filter(lambda x: (x[0], x[1].startswith('File "')), enumerate(lines, start=1))
-    _fnames = [(row_idx, find_pyfile(line))for row_idx, line in fname_in_stack]
+    _fnames = [(row_idx, find_pyfile(line)) for row_idx, line in fname_in_stack]
     fnames = [(row_idx, pyfile) for row_idx, pyfile in _fnames if pyfile is not None]
     # 外部ライブラリを抽出
     site_packages = map(transform, extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x[1][0], fnames))
@@ -131,8 +132,14 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
     for row_idx, (path, indices) in fnames:
         if (PYTHON3 in path) or (SITE_PACKAGES in path) or (DIST_PACKAGES in path):
             continue
-        user_scripts.append(HighlightTextInfo(row_idx, indices, path, TextType.USERS_FILE_NAME))
-    return sorted(user_scripts), sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
+        user_scripts.append(
+            HighlightTextInfo(row_idx, indices, path, TextType.USERS_FILE_NAME)
+        )
+    return (
+        sorted(user_scripts),
+        sorted(stdlibs),
+        sorted(list(site_packages) + list(dist_packages)),
+    )
 
 
 def error_parser(error: str) -> list[HighlightTextInfo]:
@@ -156,12 +163,52 @@ def error_parser(error: str) -> list[HighlightTextInfo]:
  HighlightTextInfo(row_idx=6, col_idxes=TextIndices(start=0, end=71),\
  text='AssertionError: Batch size (64) does not match number of examples (18)"', type=<TextType.ERROR_MESSAGE: 1>)]
     """
-    lines = error.rstrip('\n').splitlines()
-    row_idx, last_line = len(lines), lines[-1]
-    # URL は検索クエリに使えないので除去するが，FILE情報の位置はそのまま保持しておく
-    error_text = url_pattern.sub('', last_line)
-    error_text = unix_path_pattern.sub('', error_text)
+    lines = error.rstrip("\n").splitlines()
 
     user_scripts, stdlibs, extlibs = get_python_libs(lines)
-    last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
-    return [*stdlibs, *extlibs, last_message]
+    user_scripts_error_lines = []
+    for user_script in user_scripts:
+        user_scripts_error_lines.append(user_script)
+        # エラーが出た行番号を取得
+        message_line = lines[user_script.row_idx - 1]
+        start = message_line.find("line ")
+        end = start + message_line[start:].find(", ")
+        user_scripts_error_lines.append(
+            HighlightTextInfo(
+                user_script.row_idx,
+                TextIndices(start, end),
+                message_line[start:end],
+                TextType.LINE_NUMBER,
+            )
+        )
+        # エラーが出た行に書かれたコードを取得
+        row_idx = user_script.row_idx + 1
+        message_line = lines[row_idx - 1]
+
+        def remove_space(text: str) -> tuple[str, TextIndices]:
+            """
+            >>> remove_space('    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)')
+            ('stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', TextIndices(start=4, end=70))
+            """
+            rstriped = text.rstrip(" ")
+            removed = " ".join(filter(lambda x: x, rstriped.split(" ")))
+            start = len(rstriped) - len(removed)
+            end = start + len(removed)
+            return removed, TextIndices(start, end)
+
+        trimed_message_line, indices = remove_space(message_line)
+        user_scripts_error_lines.append(
+            HighlightTextInfo(
+                row_idx, indices, trimed_message_line, TextType.ERROR_MESSAGE
+            )
+        )
+
+    # pythonだと最終行に良い感じのエラーレポートがあるのでそれを利用する
+    row_idx, last_line = len(lines), lines[-1]
+    # URLやファイル名を除去する
+    error_text = url_pattern.sub("", last_line)
+    error_text = unix_path_pattern.sub("", error_text)
+    last_message = HighlightTextInfo(
+        row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE
+    )
+    return [*user_scripts_error_lines, *stdlibs, *extlibs, last_message]
