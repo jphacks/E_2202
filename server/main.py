@@ -45,7 +45,6 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
     if error_contents.language == 'Python':
         result = sorted(python.error_parser(error_contents.error_text))
         return ImportantErrorLines(result=result)
-    
     elif error_contents.language == 'Java':
         result = java.error_parser(error_contents.error_text)
         return ImportantErrorLines(result=result)
