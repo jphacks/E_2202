@@ -137,6 +137,24 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
 
 def error_parser(error: str) -> list[HighlightTextInfo]:
     """
+    >>> error_parser(\
+        'Traceback (most recent call last):\\n'\
+        '  File "PPO.py", line 275, in <module>\\n'\
+        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)\\n'\
+        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step\\n'\
+        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"\\n'\
+        'AssertionError: Batch size (64) does not match number of examples (18)"'\
+    )
+    [HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=8, end=14),\
+ text='PPO.py', type=<TextType.USERS_FILE_NAME: 3>),\
+ HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=17, end=25),\
+ text='line 275', type=<TextType.LINE_NUMBER: 4>),\
+ HighlightTextInfo(row_idx=3, col_idxes=TextIndices(start=4, end=70),\
+ text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 1>),\
+ HighlightTextInfo(row_idx=4, col_idxes=TextIndices(start=47, end=50),\
+ text='trl', type=<TextType.LIBRARY_NAME: 2>),\
+ HighlightTextInfo(row_idx=6, col_idxes=TextIndices(start=0, end=71),\
+ text='AssertionError: Batch size (64) does not match number of examples (18)"', type=<TextType.ERROR_MESSAGE: 1>)]
     """
     lines = error.rstrip('\n').splitlines()
     row_idx, last_line = len(lines), lines[-1]
