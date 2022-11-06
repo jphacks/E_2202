@@ -39,28 +39,28 @@ def find_pyfile(line: str) -> Optional[tuple[str, TextIndices]]:
     return None
 
 
-def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[HighlightTextInfo]]:
+def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[HighlightTextInfo], list[HighlightTextInfo]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
  text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
         ' line 76, in subprocess_started'])
-    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn',\
+    ([], [], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn',\
  type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
         'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
         'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
     ])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=39), text='doctest',\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=39), text='doctest',\
  type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
  text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>),\
  HighlightTextInfo(row_idx=3, col_idxes=TextIndices(start=32, end=39),\
  text='asyncio', type=<TextType.LIBRARY_NAME: 2>)],\
@@ -70,10 +70,26 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
     ])
-    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52),\
+    ([], [], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52),\
  text='uvicorn', type=<TextType.LIBRARY_NAME: 2>),\
  HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=45, end=50),\
  text='torch', type=<TextType.LIBRARY_NAME: 2>)])
+    >>> get_python_libs([\
+        'Traceback (most recent call last):',\
+        '  File "PPO.py", line 275, in <module>',\
+        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)',\
+        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step',\
+        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"',\
+        'AssertionError: Batch size (64) does not match number of examples (18)"'\
+    ])
+    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=8, end=14),\
+ text='PPO.py', type=<TextType.YOUR_OWN_FILE_NAME: 3>),\
+ HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=17, end=25),\
+ text='line 275', type=<TextType.LINE_NUMBER: 4>),\
+ HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=4, end=70),\
+ text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 0>)], [], \
+ [HighlightTextInfo(row_idx=4, col_idxes=TextIndices(start=47, end=50),\
+ text='trl', type=<TextType.LIBRARY_NAME: 2>)])
     """
 
     PYTHON3 = 'python3.'
@@ -114,27 +130,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         PYTHON3, lambda x: (PYTHON3 in x[1][0]) and (SITE_PACKAGES not in x[1][0]) and (DIST_PACKAGES not in x[1][0]),
         fnames
     ))
-    return sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
-
-
-def get_your_filenames(lines: list[str]) -> list[HighlightTextInfo]:
-    """Find Your Own Python Scripts
-    >>> get_your_filenames([\
-        'Traceback (most recent call last):',\
-        '  File "PPO.py", line 275, in <module>',\
-        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)',\
-        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step',\
-        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"',\
-        'AssertionError: Batch size (64) does not match number of examples (18)"'\
-        ])
-    [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=8, end=14),\
- text='PPO.py', type=<TextType.YOUR_OWN_FILE_NAME: 3>),\
- HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=17, end=25),\
- text='line 275', type=<TextType.LINE_NUMBER: 4>),\
- HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=4, end=70),\
- text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 0>)]
-    """
-
+    return [], sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
 
 
 def error_parser(error: str) -> list[HighlightTextInfo]:
@@ -146,6 +142,6 @@ def error_parser(error: str) -> list[HighlightTextInfo]:
     error_text = url_pattern.sub('', last_line)
     error_text = unix_path_pattern.sub('', error_text)
 
-    stdlibs, extlibs = get_python_libs(lines)
+    user_scripts, stdlibs, extlibs = get_python_libs(lines)
     last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
     return [*stdlibs, *extlibs, last_message]
