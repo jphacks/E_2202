@@ -45,7 +45,7 @@ export default function Header() {
                 justifyContent: 'flex-end',
               }}
             >
-              <Link
+              {/* <Link
                 href='/'
                 component='a'
                 underline='none'
@@ -56,7 +56,7 @@ export default function Header() {
                 }}
               >
                 About
-              </Link>
+              </Link> */}
               <Link
                 href='https://github.com/jphacks/E_2202'
                 component='a'
