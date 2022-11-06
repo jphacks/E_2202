@@ -117,6 +117,25 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
     return sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
 
 
+def get_your_filenames(lines: list[str]) -> list[HighlightTextInfo]:
+    """Find Your Own Python Scripts
+    >>> get_your_filenames([\
+        'Traceback (most recent call last):',\
+        'File "PPO.py", line 275, in <module>',\
+        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)',\
+        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step',\
+        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"',\
+        'AssertionError: Batch size (64) does not match number of examples (18)"'\
+        ])
+    [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=6, end=12),\
+ text='PPO.py', type=<TextType.YOUR_OWN_FILE_NAME: 3>),\
+ HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=15, end=23),\
+ text='line 275', type=<TextType.LINE_NUMBER: 4>),\
+ HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=4, end=70),\
+ text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 0>)]
+    """
+
+
 def error_parser(error: str) -> list[HighlightTextInfo]:
     """
     """
