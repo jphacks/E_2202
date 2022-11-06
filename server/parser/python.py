@@ -117,7 +117,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
     return sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
 
 
-def python_error(error: str) -> list[HighlightTextInfo]:
+def error_parser(error: str) -> list[HighlightTextInfo]:
     """
     """
     lines = error.rstrip('\n').splitlines()
