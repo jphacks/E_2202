@@ -39,28 +39,29 @@ def find_pyfile(line: str) -> Optional[tuple[str, TextIndices]]:
     return None
 
 
-def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[HighlightTextInfo]]:
+def get_python_libs(lines: list[str]) \
+        -> tuple[list[HighlightTextInfo], list[HighlightTextInfo], list[HighlightTextInfo]]:
     """スタックトレースにあるライブラリを抽出する
     >>> get_python_libs(['File "/usr/local/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap'])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
  text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs(['File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py",'\
         ' line 76, in subprocess_started'])
-    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn',\
+    ([], [], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=46, end=53), text='uvicorn',\
  type=<TextType.LIBRARY_NAME: 2>)])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/doctest.py", line 1346, in __run',\
         'File "<doctest __main__.parse_error[1]>", line 1, in <module>',\
         'asyncio.run(parse_error(ErrorContents(**error_text_query)))',\
     ])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=39), text='doctest',\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=39), text='doctest',\
  type=<TextType.LIBRARY_NAME: 2>)], [])
     >>> get_python_libs([\
         'File "/usr/local/lib/python3.10/multiprocessing/process.py", line 108, in run',\
         'File "/usr/local/lib/python3.10/site-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.10/asyncio/runners.py", line 44, in run'\
     ])
-    ([HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
+    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=32, end=47),\
  text='multiprocessing', type=<TextType.LIBRARY_NAME: 2>),\
  HighlightTextInfo(row_idx=3, col_idxes=TextIndices(start=32, end=39),\
  text='asyncio', type=<TextType.LIBRARY_NAME: 2>)],\
@@ -70,10 +71,22 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         'File "/usr/local/lib/python3.8/dist-packages/uvicorn/_subprocess.py", line 76, in subprocess_started',\
         'File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 889, in _call_impl',\
     ])
-    ([], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52),\
+    ([], [], [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=45, end=52),\
  text='uvicorn', type=<TextType.LIBRARY_NAME: 2>),\
  HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=45, end=50),\
  text='torch', type=<TextType.LIBRARY_NAME: 2>)])
+    >>> get_python_libs([\
+        'Traceback (most recent call last):',\
+        '  File "PPO.py", line 275, in <module>',\
+        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)',\
+        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step',\
+        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"',\
+        'AssertionError: Batch size (64) does not match number of examples (18)"'\
+    ])
+    ([HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=8, end=14),\
+ text='PPO.py', type=<TextType.USERS_FILE_NAME: 3>)], [],\
+ [HighlightTextInfo(row_idx=4, col_idxes=TextIndices(start=47, end=50),\
+ text='trl', type=<TextType.LIBRARY_NAME: 2>)])
     """
 
     PYTHON3 = 'python3.'
@@ -104,7 +117,7 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         return HighlightTextInfo(row_idx, indices, text, TextType.LIBRARY_NAME)
 
     fname_in_stack = filter(lambda x: (x[0], x[1].startswith('File "')), enumerate(lines, start=1))
-    _fnames = [(row_idx, find_pyfile(line))for row_idx, line in fname_in_stack]
+    _fnames = [(row_idx, find_pyfile(line)) for row_idx, line in fname_in_stack]
     fnames = [(row_idx, pyfile) for row_idx, pyfile in _fnames if pyfile is not None]
     # 外部ライブラリを抽出
     site_packages = map(transform, extract_libnames(SITE_PACKAGES, lambda x: SITE_PACKAGES in x[1][0], fnames))
@@ -114,18 +127,88 @@ def get_python_libs(lines: list[str]) -> tuple[list[HighlightTextInfo], list[Hig
         PYTHON3, lambda x: (PYTHON3 in x[1][0]) and (SITE_PACKAGES not in x[1][0]) and (DIST_PACKAGES not in x[1][0]),
         fnames
     ))
-    return sorted(stdlibs), sorted(list(site_packages) + list(dist_packages))
+    # それ以外のファイル名を抽出（ユーザが書いたスクリプトを想定している）
+    user_scripts = []
+    for row_idx, (path, indices) in fnames:
+        if (PYTHON3 in path) or (SITE_PACKAGES in path) or (DIST_PACKAGES in path):
+            continue
+        user_scripts.append(
+            HighlightTextInfo(row_idx, indices, path, TextType.USERS_FILE_NAME)
+        )
+    return (
+        sorted(user_scripts),
+        sorted(stdlibs),
+        sorted(list(site_packages) + list(dist_packages)),
+    )
 
 
 def error_parser(error: str) -> list[HighlightTextInfo]:
     """
+    >>> error_parser(\
+        'Traceback (most recent call last):\\n'\
+        '  File "PPO.py", line 275, in <module>\\n'\
+        '    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)\\n'\
+        '  File "/opt/conda/lib/python3.8/site-packages/trl/ppo.py", line 134, in step\\n'\
+        '    assert bs == len(queries), f"Batch size ({bs}) does not match number of examples ({len(queries)})"\\n'\
+        'AssertionError: Batch size (64) does not match number of examples (18)"'\
+    )
+    [HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=8, end=14),\
+ text='PPO.py', type=<TextType.USERS_FILE_NAME: 3>),\
+ HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=17, end=25),\
+ text='line 275', type=<TextType.LINE_NUMBER: 4>),\
+ HighlightTextInfo(row_idx=3, col_idxes=TextIndices(start=4, end=70),\
+ text='stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', type=<TextType.ERROR_MESSAGE: 1>),\
+ HighlightTextInfo(row_idx=4, col_idxes=TextIndices(start=47, end=50),\
+ text='trl', type=<TextType.LIBRARY_NAME: 2>),\
+ HighlightTextInfo(row_idx=6, col_idxes=TextIndices(start=0, end=71),\
+ text='AssertionError: Batch size (64) does not match number of examples (18)"', type=<TextType.ERROR_MESSAGE: 1>)]
     """
-    lines = error.rstrip('\n').splitlines()
-    row_idx, last_line = len(lines), lines[-1]
-    # URL は検索クエリに使えないので除去するが，FILE情報の位置はそのまま保持しておく
-    error_text = url_pattern.sub('', last_line)
-    error_text = unix_path_pattern.sub('', error_text)
+    lines = error.rstrip("\n").splitlines()
 
-    stdlibs, extlibs = get_python_libs(lines)
-    last_message = HighlightTextInfo(row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE)
-    return [*stdlibs, *extlibs, last_message]
+    user_scripts, stdlibs, extlibs = get_python_libs(lines)
+    user_scripts_error_lines = []
+    for user_script in user_scripts:
+        user_scripts_error_lines.append(user_script)
+        # エラーが出た行番号を取得
+        message_line = lines[user_script.row_idx - 1]
+        start = message_line.find("line ")
+        end = start + message_line[start:].find(", ")
+        user_scripts_error_lines.append(
+            HighlightTextInfo(
+                user_script.row_idx,
+                TextIndices(start, end),
+                message_line[start:end],
+                TextType.LINE_NUMBER,
+            )
+        )
+        # エラーが出た行に書かれたコードを取得
+        row_idx = user_script.row_idx + 1
+        message_line = lines[row_idx - 1]
+
+        def remove_space(text: str) -> tuple[str, TextIndices]:
+            """
+            >>> remove_space('    stats = ppo_trainer.step(query_tensors, response_tensors, rewards)')
+            ('stats = ppo_trainer.step(query_tensors, response_tensors, rewards)', TextIndices(start=4, end=70))
+            """
+            rstriped = text.rstrip(" ")
+            removed = " ".join(filter(lambda x: x, rstriped.split(" ")))
+            start = len(rstriped) - len(removed)
+            end = start + len(removed)
+            return removed, TextIndices(start, end)
+
+        trimed_message_line, indices = remove_space(message_line)
+        user_scripts_error_lines.append(
+            HighlightTextInfo(
+                row_idx, indices, trimed_message_line, TextType.ERROR_MESSAGE
+            )
+        )
+
+    # pythonだと最終行に良い感じのエラーレポートがあるのでそれを利用する
+    row_idx, last_line = len(lines), lines[-1]
+    # URLやファイル名を除去する
+    error_text = url_pattern.sub("", last_line)
+    error_text = unix_path_pattern.sub("", error_text)
+    last_message = HighlightTextInfo(
+        row_idx, TextIndices(0, len(last_line)), error_text, TextType.ERROR_MESSAGE
+    )
+    return [*user_scripts_error_lines, *stdlibs, *extlibs, last_message]
