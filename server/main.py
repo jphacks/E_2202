@@ -49,7 +49,7 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
         result = java.error_parser(error_contents.error_text)
         return ImportantErrorLines(result=result)
 
-    result = other.error_parser(error_contents.error_text)
+    result = java.error_parser(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 

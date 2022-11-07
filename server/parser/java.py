@@ -7,7 +7,7 @@ from container_class import (
 )
 
 
-exception_name_pattern = re.compile(r"java.lang.+?:")
+exception_name_pattern = re.compile(r"java.lang.+?.Exception")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
 )
