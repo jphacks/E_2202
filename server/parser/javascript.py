@@ -11,23 +11,22 @@ from container_class import (
 )
 
 
-error_name_pattern = re.compile(r"(.+)?[e|E]rror.+")
-not_found_pattern = re.compile(r".*N(ot|OT)[ |_]?F(ound|OUND).+")
 url_pattern = re.compile(
     r"http(s)?:\/\/[\w./%-]+(\:\d{1,})?(\?)?(((\w+)=?[\w,%0-9]+)&?)*"
 )
 unix_path_pattern = re.compile(r"[\"\']?(\.)?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
+js_error_pattern = r'.*Error(\s\[.*\])?:.*'
 
 
-def find_tsfile(line: str) -> Optional[tuple[str, TextIndices]]:
+def find_jsfile(line: str) -> Optional[tuple[str, TextIndices]]:
     """Find python file path from input
-    >>> find_tsfile('/home/soto/.tmp/testredsh/test.ts')
+    >>> find_jsfile('/home/soto/.tmp/testredsh/test.ts')
     ('/home/soto/.tmp/testredsh/test.ts', TextIndices(start=0, end=33))
-    >>> find_tsfile('    at Object.<anonymous> (/home/soto/.tmp/testredsh/test.ts:1:9)')
+    >>> find_jsfile('    at Object.<anonymous> (/home/soto/.tmp/testredsh/test.ts:1:9)')
     ('/home/soto/.tmp/testredsh/test.ts', TextIndices(start=27, end=60))
-    >>> find_tsfile("test.ts:5:23 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.")
+    >>> find_jsfile("test.ts:5:23 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.")
     ('test.ts', TextIndices(start=0, end=7))
-    >>> find_tsfile("ERROR in ./src/App.tsx 26:7")
+    >>> find_jsfile("ERROR in ./src/App.tsx 26:7")
     ('./src/App.tsx', TextIndices(start=9, end=22))
     """
     tsfile_pattern = re.compile(r'(\/.*?\.[js]+)')
@@ -49,11 +48,10 @@ text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 
 text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 1>)]
     >>> js_error('/home/soto/.tmp/testredsh/test.ts')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=33), \
-text='/home/soto/.tmp/testredsh/test.ts', type=<TextType.ERROR_MESSAGE: 1>)]
+text='/home/soto/.tmp/testredsh/test.ts', type=<TextType.LIBRARY_NAME: 2>)]
     """
     lines = error.rstrip('\n').splitlines()
     # 一行ずつ見ていく
-    js_error_pattern = r'.*Error(\s\[.*\])?:.*'
     error_list = []
     for idx, line in enumerate(lines):
         if re.search(js_error_pattern, line):
@@ -62,9 +60,7 @@ text='/home/soto/.tmp/testredsh/test.ts', type=<TextType.ERROR_MESSAGE: 1>)]
             error_text = unix_path_pattern.sub('', error_text)
             first_message = HighlightTextInfo(idx + 1, TextIndices(0, len(line)), error_text, TextType.ERROR_MESSAGE)
             error_list.append(first_message)
-        error_file  = find_tsfile(line)
+        error_file  = find_jsfile(line)
         if error_file:
-            error_list.append(HighlightTextInfo(idx + 1, error_file[1], error_file[0], TextType.ERROR_MESSAGE))
-    return [*[], *[], *error_list]
-
-
+            error_list.append(HighlightTextInfo(idx + 1, error_file[1], error_file[0], TextType.LIBRARY_NAME))
+    return [*error_list]
