@@ -36,6 +36,10 @@ def test_parse_error_text_passed() -> None:
     assert response.status_code == 200
     assert response.json() == {
         'result': [
+            {'row_idx':  1, 'col_idxes': {'start':  7, 'end': 25}, 'text': './public_html/d.py', 'type': 3},
+            {'row_idx':  1, 'col_idxes': {'start': 28, 'end': 35}, 'text': 'line 13', 'type': 4},
+            {'row_idx':  2, 'col_idxes': {'start':  4, 'end': 49},
+             'text': "app.run(debug=False, host='0.0.0.0', port=80)", 'type': 1},
             {'row_idx':  3, 'col_idxes': {'start': 54, 'end': 59}, 'text': 'flask',        'type': 2},
             {'row_idx':  5, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
             {'row_idx':  7, 'col_idxes': {'start': 54, 'end': 62}, 'text': 'werkzeug',     'type': 2},
