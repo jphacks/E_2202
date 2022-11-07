@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from parser import (
     python,
+    javascript,
     other,
 )
 from container_class import (
@@ -42,13 +43,21 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     ImportantErrorLines(result=[\
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
+    >>> error_text_query = {\
+        'error_text': "Uncaught Error: Module parse failed: Duplicate export 'default' (26:7)", \
+        'language': 'Js'}
+    >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
+    ImportantErrorLines(result=[\
+HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=70), \
+text="Uncaught Error: Module parse failed: Duplicate export 'default' (26:7)", type=<TextType.ERROR_MESSAGE: 1>)])
     """
     # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
     if error_contents.language == 'Python':
         result = sorted(python.error_parser(error_contents.error_text))
-        return ImportantErrorLines(result=result)
-
-    result = other.error_parser(error_contents.error_text)
+    elif error_contents.language == 'Js':
+        result = sorted(javascript.js_error(error_contents.error_text))
+    else: # Other language
+        result = another_language_error(error_contents.error_text)
     return ImportantErrorLines(result=result)
 
 
