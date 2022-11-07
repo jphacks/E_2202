@@ -17,19 +17,43 @@ export interface CodeAreaProps {
 export default function CodeArea({ errorText, highlights }: CodeAreaProps) {
   const highlight = function (v: string, i: number): JSX.Element[] {
     if (highlights.some((v) => v.row_idx === i + 1)) {
-      return highlights
-        .filter((vf) => vf.row_idx === i + 1)
-        .map((vm) => (
-          <>
-            <span>{v.slice(0, vm.col_idxes.start)}</span>
-            <span
-              style={{ backgroundColor: vm.type === 1 ? '#F5B7B1' : '#F9E79F' }}
-            >
-              {v.slice(vm.col_idxes.start, vm.col_idxes.end)}
-            </span>
-            <span>{v.slice(vm.col_idxes.end)}</span>
-          </>
-        ));
+      let current_highlights = highlights.filter((vf) => vf.row_idx === i + 1)
+      if (current_highlights.some((v) => v.type === 1)) {
+        // ERROR_MESSAGE（重要なエラー行）があればそれだけを強調表示する
+        current_highlights = current_highlights.filter((v) => v.type === 1)
+      }
+
+      let jsxElements = [];
+      jsxElements.push(
+          <span>{v.slice(0, current_highlights[0].col_idxes.start)}</span>
+      );
+      current_highlights
+        .sort((vf) => vf.col_idxes.start)
+        .reduce((pre, cur) => {
+          jsxElements.push(
+            <>
+              <span
+                style={{ backgroundColor: pre.type === 1 ? '#F5B7B1' : '#F9E79F' }}
+              >
+                {v.slice(pre.col_idxes.start, pre.col_idxes.end)}
+              </span>
+              <span>{v.slice(pre.col_idxes.end, cur.col_idxes.start)}</span>
+            </>
+          );
+          return cur;
+        });
+      const lastHighlight = current_highlights[current_highlights.length-1];
+      jsxElements.push(
+        <>
+          <span
+            style={{ backgroundColor: lastHighlight.type === 1 ? '#F5B7B1' : '#F9E79F' }}
+          >
+            {v.slice(lastHighlight.col_idxes.start, lastHighlight.col_idxes.end)}
+          </span>
+          <span>{v.slice(lastHighlight.col_idxes.end)}</span>
+        </>
+      );
+      return jsxElements;
     } else {
       return [<span key={0}>{v}</span>];
     }
