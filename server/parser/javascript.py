@@ -34,7 +34,7 @@ def find_jsfile(line: str) -> Optional[tuple[str, TextIndices]]:
 
 
 def js_error(error: str) -> list[HighlightTextInfo]:
-    """ hoge
+    """
     >>> js_error('TypeError [ERR_INVALID_ARG_TYPE]: \
 The "path" argument must be of type string. Received type number (3)')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=102), \
