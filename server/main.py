@@ -1,3 +1,6 @@
+import re
+from collections import Counter
+
 from fastapi import (
     FastAPI,
 )
@@ -31,6 +34,26 @@ app.add_middleware(
 )
 
 
+def check_language(text: str) -> str:
+    # 最頻値チェック
+    ext_pattern = re.compile(r"(\.py|\.java|\.js|\.ts)")
+    candidates = ext_pattern.findall(text)
+    if not candidates:
+        return ""  # どれにも当てはまらなかったときは空で返す
+
+    lang = Counter(candidates).most_common(1)[0][0]
+    match lang:
+        case ".py":
+            res = "Python"
+        case ".java":
+            res = "Java"
+        case ".js" | ".ts":
+            res = "JavaScript"
+        case _:
+            res = ""
+    return res
+
+
 @app.post("/error_parse", response_model=ImportantErrorLines)
 async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
     """
@@ -44,7 +67,11 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
-    match error_contents.language:
+    lang = error_contents.language
+    if not lang:
+        lang = check_language(error_contents.error_text)
+
+    match lang:
         case 'Python':
             result = sorted(python.error_parser(error_contents.error_text))
             return ImportantErrorLines(result=result)
