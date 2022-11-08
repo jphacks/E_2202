@@ -36,7 +36,7 @@ app.add_middleware(
 
 def check_language(text: str) -> str:
     # 最頻値チェック
-    ext_pattern = re.compile(r"(\.py|\.java|\.js|\.ts)")
+    ext_pattern = re.compile(r"(\.py|\.java|\.js|\.tsx)")
     candidates = ext_pattern.findall(text)
     if not candidates:
         return ""  # どれにも当てはまらなかったときは空で返す
@@ -47,7 +47,7 @@ def check_language(text: str) -> str:
             res = "Python"
         case ".java":
             res = "Java"
-        case ".js" | ".ts":
+        case ".js" | ".tsx":
             res = "JavaScript"
         case _:
             res = ""
