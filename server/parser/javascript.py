@@ -33,20 +33,20 @@ def find_jsfile(line: str) -> Optional[tuple[str, TextIndices]]:
     return None
 
 
-def js_error(error: str) -> list[HighlightTextInfo]:
+def error_parser(error: str) -> list[HighlightTextInfo]:
     """
-    >>> js_error('TypeError [ERR_INVALID_ARG_TYPE]: \
+    >>> error_parser('TypeError [ERR_INVALID_ARG_TYPE]: \
 The "path" argument must be of type string. Received type number (3)')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=102), \
 text='TypeError [ERR_INVALID_ARG_TYPE]: \
 The "path" argument must be of type string. Received type number (3)', type=<TextType.ERROR_MESSAGE: 1>)]
-    >>> js_error("Uncaught Error: Cannot find module 'path'")
+    >>> error_parser("Uncaught Error: Cannot find module 'path'")
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=41), \
 text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 1>)]
-    >>> js_error(("hogehoge\\nUncaught Error: Cannot find module 'path'"))
+    >>> error_parser(("hogehoge\\nUncaught Error: Cannot find module 'path'"))
     [HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=41), \
 text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 1>)]
-    >>> js_error('/home/soto/.tmp/testredsh/test.js')
+    >>> error_parser('/home/soto/.tmp/testredsh/test.js')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=33), \
 text='/home/soto/.tmp/testredsh/test.js', type=<TextType.LIBRARY_NAME: 2>)]
     """
@@ -60,6 +60,7 @@ text='/home/soto/.tmp/testredsh/test.js', type=<TextType.LIBRARY_NAME: 2>)]
             error_text = unix_path_pattern.sub('', error_text)
             first_message = HighlightTextInfo(idx + 1, TextIndices(0, len(line)), error_text, TextType.ERROR_MESSAGE)
             error_list.append(first_message)
+
         error_file = find_jsfile(line)
         if error_file:
             error_path, error_idx = error_file

@@ -54,8 +54,8 @@ text="Uncaught Error: Module parse failed: Duplicate export 'default' (26:7)", t
     # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
     if error_contents.language == 'Python':
         result = sorted(python.error_parser(error_contents.error_text))
-    elif error_contents.language == 'Js':
-        result = sorted(javascript.js_error(error_contents.error_text))
+    elif error_contents.language == 'JavaScript':
+        result = sorted(javascript.error_parser(error_contents.error_text))
     else:  # Other language
         result = other.error_parser(error_contents.error_text)
     return ImportantErrorLines(result=result)
