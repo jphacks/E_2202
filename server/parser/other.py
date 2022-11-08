@@ -23,7 +23,8 @@ def error_parser(error: str) -> list[HighlightTextInfo]:
                 and not_found_pattern.search(line) is None:
             continue
 
-        res = url_pattern.sub("__URL__", line)
-        res = unix_path_pattern.sub("__FILE__", res)
-        result.append(HighlightTextInfo(row_idx, TextIndices(0, len(res)), res, TextType.ERROR_MESSAGE))
+        # URLやファイル名を除去する
+        res = url_pattern.sub("", line)
+        res = unix_path_pattern.sub("", res)
+        result.append(HighlightTextInfo(row_idx, TextIndices(0, len(line)), res, TextType.ERROR_MESSAGE))
     return result
