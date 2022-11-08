@@ -1,6 +1,6 @@
 import re
+
 from typing import (
-    Callable,
     Optional,
 )
 
@@ -16,39 +16,39 @@ url_pattern = re.compile(
 )
 unix_path_pattern = re.compile(r"[\"\']?(\.)?(\/)?\w+\/[^\"\'\) ]+[\"\']?")
 js_error_pattern = r'.*Error(\s\[.*\])?:.*'
+jsfile_pattern = re.compile(r'(\/.*?\.[js]+)')
+jserror_line_pattern = re.compile(r'(:\d(:\d|\d)*)')
 
 
 def find_jsfile(line: str) -> Optional[tuple[str, TextIndices]]:
     """Find python file path from input
-    >>> find_jsfile('/home/soto/.tmp/testredsh/test.ts')
-    ('/home/soto/.tmp/testredsh/test.ts', TextIndices(start=0, end=33))
-    >>> find_jsfile('    at Object.<anonymous> (/home/soto/.tmp/testredsh/test.ts:1:9)')
-    ('/home/soto/.tmp/testredsh/test.ts', TextIndices(start=27, end=60))
-    >>> find_jsfile("test.ts:5:23 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.")
-    ('test.ts', TextIndices(start=0, end=7))
-    >>> find_jsfile("ERROR in ./src/App.tsx 26:7")
-    ('./src/App.tsx', TextIndices(start=9, end=22))
+    >>> find_jsfile('/home/soto/.tmp/testredsh/test.js')
+    ('/home/soto/.tmp/testredsh/test.js', TextIndices(start=0, end=33))
+    >>> find_jsfile('    at Object.<anonymous> (/home/soto/.tmp/testredsh/test.js:1:9)')
+    ('/home/soto/.tmp/testredsh/test.js', TextIndices(start=27, end=60))
     """
-    tsfile_pattern = re.compile(r'(\/.*?\.[js]+)')
-    tsfile_path = tsfile_pattern.search(line)
-    if tsfile_path:
-        return tsfile_path[0], TextIndices(tsfile_path.start(), tsfile_path.end())
+    jsfile_path = jsfile_pattern.search(line)
+    if jsfile_path:
+        return jsfile_path[0], TextIndices(jsfile_path.start(), jsfile_path.end())
     return None
+
 
 def js_error(error: str) -> list[HighlightTextInfo]:
     """ hoge
-    >>> js_error('TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type number (3)')
+    >>> js_error('TypeError [ERR_INVALID_ARG_TYPE]: \
+The "path" argument must be of type string. Received type number (3)')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=102), \
-text='TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type number (3)', type=<TextType.ERROR_MESSAGE: 1>)]
+text='TypeError [ERR_INVALID_ARG_TYPE]: \
+The "path" argument must be of type string. Received type number (3)', type=<TextType.ERROR_MESSAGE: 1>)]
     >>> js_error("Uncaught Error: Cannot find module 'path'")
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=41), \
 text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 1>)]
     >>> js_error(("hogehoge\\nUncaught Error: Cannot find module 'path'"))
     [HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=41), \
 text="Uncaught Error: Cannot find module 'path'", type=<TextType.ERROR_MESSAGE: 1>)]
-    >>> js_error('/home/soto/.tmp/testredsh/test.ts')
+    >>> js_error('/home/soto/.tmp/testredsh/test.js')
     [HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=33), \
-text='/home/soto/.tmp/testredsh/test.ts', type=<TextType.LIBRARY_NAME: 2>)]
+text='/home/soto/.tmp/testredsh/test.js', type=<TextType.LIBRARY_NAME: 2>)]
     """
     lines = error.rstrip('\n').splitlines()
     # 一行ずつ見ていく
@@ -60,7 +60,13 @@ text='/home/soto/.tmp/testredsh/test.ts', type=<TextType.LIBRARY_NAME: 2>)]
             error_text = unix_path_pattern.sub('', error_text)
             first_message = HighlightTextInfo(idx + 1, TextIndices(0, len(line)), error_text, TextType.ERROR_MESSAGE)
             error_list.append(first_message)
-        error_file  = find_jsfile(line)
+        error_file = find_jsfile(line)
         if error_file:
-            error_list.append(HighlightTextInfo(idx + 1, error_file[1], error_file[0], TextType.LIBRARY_NAME))
+            error_path, error_idx = error_file
+            error_list.append(HighlightTextInfo(idx + 1, error_idx, error_path, TextType.LIBRARY_NAME))
+            # ここからエラー行番号を抽出する処理を書く
+            ret = jserror_line_pattern.search(line[error_idx.end:])
+            if ret:
+                error_ind = TextIndices(ret.start() + 1 + error_idx.end, ret.end() + error_idx.end)
+                error_list.append(HighlightTextInfo(idx + 1, error_ind, ret.groups()[0][1:], TextType.LIBRARY_NAME))
     return [*error_list]
