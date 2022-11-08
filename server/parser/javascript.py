@@ -21,7 +21,7 @@ jserror_line_pattern = re.compile(r'(:\d(:\d|\d)*)')
 
 
 def find_jsfile(line: str) -> Optional[tuple[str, TextIndices]]:
-    """Find python file path from input
+    """Find javascript file path from input
     >>> find_jsfile('/home/soto/.tmp/testredsh/test.js')
     ('/home/soto/.tmp/testredsh/test.js', TextIndices(start=0, end=33))
     >>> find_jsfile('    at Object.<anonymous> (/home/soto/.tmp/testredsh/test.js:1:9)')
