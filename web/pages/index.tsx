@@ -34,6 +34,8 @@ export default function Search() {
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const BACKEND_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
+  const router = useRouter();
+
   const handleChangeOS = (event: SelectChangeEvent) => {
     setOS(event.target.value as string);
   };
@@ -77,8 +79,6 @@ export default function Search() {
     }
   };
 
-  const router = useRouter();
-
   const handleClickSearch = () => {
     fetch(`${BACKEND_ENDPOINT}/error_parse`, {
       method: 'POST',
@@ -93,7 +93,10 @@ export default function Search() {
           x.type == 1 ? x.text : '',
         ) as [];
         const uniqueTexts = Array.from(new Set(texts).values());
-        open(`https://google.com/search?q=${uniqueTexts.join('+')}&lr=lang_ja`);
+        const searchQuery = buildSearchQuery(uniqueTexts as [])
+          .split(' ')
+          .join('+');
+        open(`https://google.com/search?q=${searchQuery}&lr=lang_ja`);
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
@@ -114,7 +117,12 @@ export default function Search() {
   };
 
   const buildSearchQuery = (queryErrorContents: []) => {
-    return [...queryErrorContents, 'in', language, 'on', os].join(' ');
+    let query = '';
+    query += queryErrorContents.join(' ');
+    // 検索候補が減ってしまうため、一旦クエリに含めないようにしておく
+    // if (language !== '') {query += ` in ${language}`}
+    // if (os !== '') {query += ` on ${os}`}
+    return query;
   };
 
   return (
