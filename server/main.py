@@ -41,7 +41,6 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
-    # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
     match error_contents.language:
         case 'Python':
             result = sorted(python.error_parser(error_contents.error_text))

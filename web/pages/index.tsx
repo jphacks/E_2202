@@ -157,6 +157,7 @@ export default function Search() {
             onChange={handleChangeLanguage}
           >
             <MenuItem value={'Python'}>Python</MenuItem>
+            <MenuItem value={'Java'}>Java</MenuItem>
             <MenuItem value={'Others'}>Others</MenuItem>
           </Select>
         </FormControl>
