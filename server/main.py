@@ -40,7 +40,7 @@ def check_language(text: str) -> str:
     ext_pattern = re.compile(r"(\.py|\.java|\.js|\.tsx)")
     candidates = ext_pattern.findall(text)
     if not candidates:
-        return ""  # どれにも当てはまらなかったときは空で返す
+        return "Others"  # どれにも当てはまらなかったときは空で返す
 
     lang = Counter(candidates).most_common(1)[0][0]
     match lang:
@@ -51,7 +51,7 @@ def check_language(text: str) -> str:
         case ".js" | ".tsx":
             res = "JavaScript"
         case _:
-            res = ""
+            res = "Others"
     return res
 
 
