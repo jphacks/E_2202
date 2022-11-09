@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from parser import (
     python,
+    java,
     other,
 )
 from container_class import (
@@ -43,13 +44,16 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
-    # TODO: 今後対応する言語が増えたらmatchに変更する方がいいかも
-    if error_contents.language == 'Python':
-        result = sorted(python.error_parser(error_contents.error_text))
-        return ImportantErrorLines(result=result)
-
-    result = other.error_parser(error_contents.error_text)
-    return ImportantErrorLines(result=result)
+    match error_contents.language:
+        case 'Python':
+            result = sorted(python.error_parser(error_contents.error_text))
+            return ImportantErrorLines(result=result)
+        case 'Java':
+            result = java.error_parser(error_contents.error_text)
+            return ImportantErrorLines(result=result)
+        case _:
+            result = other.error_parser(error_contents.error_text)
+            return ImportantErrorLines(result=result)
 
 
 if __name__ == "__main__":

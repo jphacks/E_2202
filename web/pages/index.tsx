@@ -184,6 +184,7 @@ export default function Search() {
               >
                 <MenuItem value={''}>指定なし</MenuItem>
                 <MenuItem value={'Python'}>Python</MenuItem>
+                <MenuItem value={'Java'}>Java</MenuItem>
                 <MenuItem value={'Others'}>Others</MenuItem>
               </Select>
             </FormControl>
