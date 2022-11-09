@@ -35,6 +35,7 @@ def test_parse_error_text_passed() -> None:
     )
     assert response.status_code == 200
     assert response.json() == {
+        'parser': 'Python',
         'result': [
             {'row_idx':  1, 'col_idxes': {'start':  7, 'end': 25}, 'text': './public_html/d.py', 'type': 3},
             {'row_idx':  1, 'col_idxes': {'start': 28, 'end': 35}, 'text': 'line 13', 'type': 4},

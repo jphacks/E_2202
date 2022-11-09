@@ -63,7 +63,7 @@ async def parse_error(error_contents: ErrorContents) -> ImportantErrorLines:
         'error_text': "/path/to/file\\n AttributeError: 'int' object has no attribute 'append'", \
         'language': 'Python'}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=[\
+    ImportantErrorLines(parser='Python', result=[\
 HighlightTextInfo(row_idx=2, col_idxes=TextIndices(start=0, end=55), \
 text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.ERROR_MESSAGE: 1>)])
     """
@@ -74,13 +74,12 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
     match lang:
         case 'Python':
             result = sorted(python.error_parser(error_contents.error_text))
-            return ImportantErrorLines(result=result)
         case 'Java':
             result = java.error_parser(error_contents.error_text)
-            return ImportantErrorLines(result=result)
         case _:
             result = other.error_parser(error_contents.error_text)
-            return ImportantErrorLines(result=result)
+
+    return ImportantErrorLines(parser=lang, result=result)
 
 
 if __name__ == "__main__":
