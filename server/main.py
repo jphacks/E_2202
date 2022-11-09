@@ -71,7 +71,7 @@ text=" AttributeError: 'int' object has no attribute 'append'", type=<TextType.E
         'error_text': "Uncaught Error: Module parse failed: Duplicate export 'default' (26:7)", \
         'language': 'JavaScript'}
     >>> asyncio.run(parse_error(ErrorContents(**error_text_query)))
-    ImportantErrorLines(result=[\
+    ImportantErrorLines(parser='JavaScript', result=[\
 HighlightTextInfo(row_idx=1, col_idxes=TextIndices(start=0, end=70), \
 text="Uncaught Error: Module parse failed: Duplicate export 'default' (26:7)", type=<TextType.ERROR_MESSAGE: 1>)])
     """
