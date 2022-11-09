@@ -48,4 +48,5 @@ class ErrorContents(BaseModel):
 
 
 class ImportantErrorLines(BaseModel):
+    parser: str
     result: list[HighlightTextInfo]

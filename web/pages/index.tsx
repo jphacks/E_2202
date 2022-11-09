@@ -63,6 +63,7 @@ export default function Search() {
       })
         .then((res) => res.json())
         .then((data) => {
+          setLanguage(data.parser);
           setIsShowAnalizedResults(true);
           setAnalizedError(error);
           setHighlights(data.result);
