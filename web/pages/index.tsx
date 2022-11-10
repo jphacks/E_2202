@@ -97,7 +97,7 @@ export default function Search() {
         const searchQuery = buildSearchQuery(uniqueTexts as [])
           .split(' ')
           .join('+');
-        open(`https://google.com/search?q=${searchQuery}&lr=lang_ja`);
+        open(`https://google.com/search?q=${searchQuery}&lr=lang_ja&tbs=qdr:y`);
       })
       .catch((error) => {
         console.error('通信に失敗しました', error);
