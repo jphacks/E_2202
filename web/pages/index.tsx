@@ -23,9 +23,10 @@ import CodeArea from '../src/components/codeArea';
 import Header from '../src/components/header';
 
 export default function Search() {
+  const [error, setError] = React.useState('');
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
-  const [error, setError] = React.useState('');
+  const [maskWords, setMaskWords] = React.useState('');
   const [analizedError, setAnalizedError] = React.useState('');
   const [isShowAnalizedResults, setIsShowAnalizedResults] =
     React.useState(false);
@@ -36,14 +37,6 @@ export default function Search() {
 
   const router = useRouter();
 
-  const handleChangeOS = (event: SelectChangeEvent) => {
-    setOS(event.target.value as string);
-  };
-
-  const handleChangeLanguage = (event: SelectChangeEvent) => {
-    setLanguage(event.target.value as string);
-  };
-
   const handleChangeError = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(event.target.value as string);
     setIsShowAnalizedResults(false);
@@ -52,20 +45,39 @@ export default function Search() {
     setSearchQuery('');
   };
 
+  const handleChangeOS = (event: SelectChangeEvent) => {
+    setOS(event.target.value as string);
+  };
+
+  const handleChangeLanguage = (event: SelectChangeEvent) => {
+    setLanguage(event.target.value as string);
+  };
+
+  const handleChangeMaskWords = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setMaskWords(event.target.value as string);
+  };
+
   const handleClickAnalyze = () => {
-    if (error.length > 0) {
+    let errorText = error;
+    if (errorText.length > 0) {
+      maskWords.split(',').forEach((word) => {
+        errorText = errorText.replaceAll(word, 'xxx');
+      });
+
       fetch(`${BACKEND_ENDPOINT}/error_parse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ language: language, error_text: error }),
+        body: JSON.stringify({ language: language, error_text: errorText }),
       })
         .then((res) => res.json())
         .then((data) => {
           setLanguage(data.parser);
           setIsShowAnalizedResults(true);
-          setAnalizedError(error);
+          setAnalizedError(errorText);
           setHighlights(data.result);
           const texts = data.result.map((x: { text: string; type: number }) =>
             x.type == 1 ? x.text : '',
@@ -213,6 +225,35 @@ export default function Search() {
                 <MenuItem value={'macOS'}>macOS</MenuItem>
                 {/* <MenuItem value={'Windows'}>Windows</MenuItem> */}
               </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <FormHelperText
+                component='div'
+                sx={{
+                  m: 0,
+                  fontSize: '1rem',
+                }}
+              >
+                マスク対象ワード
+              </FormHelperText>
+              <OutlinedInput
+                placeholder='ProjectName,ModuleName'
+                id='maskWords'
+                value={maskWords}
+                onChange={handleChangeMaskWords}
+                sx={{
+                  bgcolor: 'white',
+                }}
+              />
+              <FormHelperText
+                component='div'
+                sx={{
+                  m: 0,
+                  fontSize: '0.75rem',
+                }}
+              >
+                ※プロジェクト名などのマスクしたいワードをカンマ区切りで入力。エラー文中の該当ワードがxxxに置換されます。
+              </FormHelperText>
             </FormControl>
           </Stack>
           <Stack
