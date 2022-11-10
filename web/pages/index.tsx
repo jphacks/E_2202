@@ -23,7 +23,7 @@ import CodeArea from '../src/components/codeArea';
 import Header from '../src/components/header';
 
 export default function Search() {
-  const [error, setError] = React.useState('');
+  const [rawError, setRawError] = React.useState('');
   const [os, setOS] = React.useState('');
   const [language, setLanguage] = React.useState('');
   const [maskWords, setMaskWords] = React.useState('');
@@ -38,7 +38,7 @@ export default function Search() {
   const router = useRouter();
 
   const handleChangeError = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setError(event.target.value as string);
+    setRawError(event.target.value as string);
     setIsShowAnalizedResults(false);
     setAnalizedError('');
     setHighlights([]);
@@ -60,11 +60,13 @@ export default function Search() {
   };
 
   const handleClickAnalyze = () => {
-    let errorText = error;
+    let errorText = rawError;
     if (errorText.length > 0) {
-      maskWords.split(',').forEach((word) => {
-        errorText = errorText.replaceAll(word, 'xxx');
-      });
+      if (maskWords.length > 0) {
+        maskWords.split(',').forEach((word) => {
+          errorText = errorText.replaceAll(word, 'xxx');
+        });
+      }
 
       fetch(`${BACKEND_ENDPOINT}/error_parse`, {
         method: 'POST',
@@ -93,27 +95,8 @@ export default function Search() {
   };
 
   const handleClickSearch = () => {
-    fetch(`${BACKEND_ENDPOINT}/error_parse`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ language: language, error_text: error }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const texts = data.result.map((x: { text: string; type: number }) =>
-          x.type == 1 ? x.text : '',
-        ) as [];
-        const uniqueTexts = Array.from(new Set(texts).values());
-        const searchQuery = buildSearchQuery(uniqueTexts as [])
-          .split(' ')
-          .join('+');
-        open(`https://google.com/search?q=${searchQuery}&lr=lang_ja`);
-      })
-      .catch((error) => {
-        console.error('通信に失敗しました', error);
-      });
+    const sq = searchQuery.split(' ').join('+');
+    open(`https://google.com/search?q=${sq}&lr=lang_ja`);
   };
 
   const handleClickCopy = () => {
@@ -167,7 +150,7 @@ export default function Search() {
               <OutlinedInput
                 placeholder='解決したいエラー文を入力してくだい。'
                 id='errorText'
-                value={error}
+                value={rawError}
                 onChange={handleChangeError}
                 multiline
                 rows={10}
