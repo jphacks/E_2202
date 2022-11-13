@@ -2,7 +2,7 @@
 ![frontend workflow](https://github.com/jphacks/E_2202/actions/workflows/heroku-dev-frontend.yml/badge.svg) 
 
 # YouQuery (Error × tech)
-[!['YouQueryデモ動画'](https://user-images.githubusercontent.com/33239413/201478506-01acb409-e10f-4e08-b434-9831b26ad0cb.png)](https://youtu.be/YaftNA4aTt8)
+[!['YouQueryデモ動画'](https://user-images.githubusercontent.com/33239413/201500067-67884b89-7c86-4cba-8080-24b4a56e15e2.png)](https://youtu.be/YaftNA4aTt8)
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）
